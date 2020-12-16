@@ -77,7 +77,8 @@ Run single chain MCMC and plot traceplots.
 ```{r single_chain_plot}
 burnin <- 0
 chain_length <- 1000
-single_chain <- half_t_mcmc(chain_length, burnin, X, X_transpose, y, t_dist_df=2)
+single_chain <- 
+  half_t_mcmc(chain_length, burnin, X, X_transpose, y, t_dist_df=t_dist_df)
 matplot(single_chain$beta_samples[,seq(2,20,4)], type = 'l', ylab = 'Beta')
 abline(h=true_beta[seq(2,20,4)], col=c(1:5)) # Solid lines: true beta
 ```
@@ -87,19 +88,29 @@ Run coupled MCMC and plot distance between chains.
 ```{r coupled_chain_plot}
 lag <- 100
 coupled_chain <- 
-  coupled_half_t_mcmc(mc_chain_size=1, X, X_transpose, y, t_dist_df=2, lag=lag)
+  coupled_half_t_mcmc(mc_chain_size=1, X, X_transpose, y, t_dist_df=t_dist_df, lag=lag)
 print(paste('Lag: ',lag,'.',' L-lag Meeting time: ',coupled_chain$meetingtime,'.',sep = ''))
 # dim(coupled_chain$beta_samples1)
 # dim(coupled_chain$beta_samples2)
 
 par(mfrow=c(1,1))
-matplot(coupled_chain$beta_samples1[2:(coupled_chain$meetingtime+2-lag),seq(2,20,4)], type = 'l',ylab = 'chain1 beta components')
-matplot(coupled_chain$beta_samples2[1:(coupled_chain$meetingtime+1-lag),seq(2,20,4)], type = 'l',ylab = 'chain2 beta components')
-matplot(rowSums(abs(coupled_chain$beta_samples1[2:(coupled_chain$meetingtime+2-lag),]-coupled_chain$beta_samples2[c(1:(coupled_chain$meetingtime+1-lag)),])), type='l', ylab = '|chain1_beta-chain2_beta|_1')
-abline(v=(coupled_chain$meetingtime-lag), col='red')
-matplot(rowSums(abs(coupled_chain$eta_samples1[2:(coupled_chain$meetingtime+2-lag),]-coupled_chain$eta_samples2[c(1:(coupled_chain$meetingtime+1-lag)),])), type='l', ylab = '|chain1_eta-chain2_eta|_1')
-abline(v=(coupled_chain$meetingtime-lag), col='red')
+matplot(coupled_chain$beta_samples1[2:(coupled_chain$meetingtime+2-lag),seq(2,20,4)], type = 'l',ylab = 'chain1 beta components', xlab = 'iteration')
 
+matplot(coupled_chain$beta_samples2[1:(coupled_chain$meetingtime+1-lag),seq(2,20,4)], type = 'l',ylab = 'chain2 beta components', xlab = 'iteration')
+
+par(mfrow=c(1,1))
+matplot(rowSums(abs(coupled_chain$beta_samples1[2:(coupled_chain$meetingtime+2-lag),]-coupled_chain$beta_samples2[c(1:(coupled_chain$meetingtime+1-lag)),])), type='l', ylab = '|chain1_beta-chain2_beta|_1', xlab = 'iteration', xlim = c(1,(coupled_chain$meetingtime+5-lag)))
+abline(v=(coupled_chain$meetingtime+1-lag), col='red')
+text(x=(coupled_chain$meetingtime+1-lag), y=0, "meet_time-lag")
+matplot(rowSums(abs(coupled_chain$eta_samples1[2:(coupled_chain$meetingtime+2-lag),]-coupled_chain$eta_samples2[c(1:(coupled_chain$meetingtime+1-lag)),])), type='l', ylab = '|chain1_eta-chain2_eta|_1', xlab = 'iteration', xlim = c(1,(coupled_chain$meetingtime+5-lag)))
+abline(v=(coupled_chain$meetingtime+1-lag), col='red')
+text(x=(coupled_chain$meetingtime+1-lag), y=0, "meet_time-lag")
+matplot((abs(coupled_chain$xi_samples1[2:(coupled_chain$meetingtime+2-lag)]-coupled_chain$xi_samples2[c(1:(coupled_chain$meetingtime+1-lag))])), type='l', ylab = '|chain1_xi-chain2_xi|_1', xlab = 'iteration', xlim = c(1,(coupled_chain$meetingtime+5-lag)))
+abline(v=(coupled_chain$meetingtime+1-lag), col='red')
+text(x=(coupled_chain$meetingtime+1-lag), y=0, "meet_time-lag")
+matplot((abs(coupled_chain$xi_samples1[2:(coupled_chain$meetingtime+2-lag)]-coupled_chain$xi_samples2[c(1:(coupled_chain$meetingtime+1-lag))])), type='l', ylab = '|chain1_sigma-chain2_sigma|_1', xlab = 'iteration', xlim = c(1,(coupled_chain$meetingtime+5-lag)))
+abline(v=(coupled_chain$meetingtime+1-lag), col='red')
+text(x=(coupled_chain$meetingtime+1-lag), y=0, "meet_time-lag")
 ```
 
 Run coupled MCMC and generate meeting times. 
