@@ -145,7 +145,7 @@ text(x=(coupled_chain$meetingtime+1-lag), y=0, "meet_time-lag")
 ![](README_files/figure-html/coupled_chain_plot-5.png)<!-- -->
 
 ```r
-matplot((abs(coupled_chain$xi_samples1[2:(coupled_chain$meetingtime+2-lag)]-coupled_chain$xi_samples2[c(1:(coupled_chain$meetingtime+1-lag))])), type='l', ylab = '|chain1_sigma-chain2_sigma|_1', xlab = 'iteration', xlim = c(1,(coupled_chain$meetingtime+5-lag)))
+matplot((abs(coupled_chain$sigma2_samples1[2:(coupled_chain$meetingtime+2-lag)]-coupled_chain$sigma2_samples2[c(1:(coupled_chain$meetingtime+1-lag))])), type='l', ylab = '|chain1_sigma-chain2_sigma|_1', xlab = 'iteration', xlim = c(1,(coupled_chain$meetingtime+5-lag)))
 abline(v=(coupled_chain$meetingtime+1-lag), col='red')
 text(x=(coupled_chain$meetingtime+1-lag), y=0, "meet_time-lag")
 ```
