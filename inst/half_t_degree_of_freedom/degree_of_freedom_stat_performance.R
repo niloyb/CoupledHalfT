@@ -57,27 +57,49 @@ s <- 20
 true_beta <- matrix(0,p,1)
 true_beta[1:s] = 2^(-(seq(s)/4-9/4))
 
-X <- matrix(rnorm(n*p, mean = 0, sd = 1), nrow = n, ncol = p)
-#Error terms
-error_std <- 2
-error_terms = error_std*rnorm(n, mean = 0, sd = 1)
-y = X%*%true_beta + error_terms
-X_transpose <- t(X)
+# X <- matrix(rnorm(n*p, mean = 0, sd = 1), nrow = n, ncol = p)
+# #Error terms
+# error_std <- 2
+# error_terms = error_std*rnorm(n, mean = 0, sd = 1)
+# y = X%*%true_beta + error_terms
+# X_transpose <- t(X)
 
 stat_perform_df <- data.frame()
 stat_perform_componentwise_df <- data.frame()
 traceplots_df <- data.frame()
 iterations <- 100
-for (t_dist_df in seq(1,2,0.2)){
-    for (i in 1:iterations){
-      # Generate data
-      X <- matrix(rnorm(n*p, mean = 0, sd = 1), nrow = n, ncol = p)
-      #Error terms
-      error_std <- 2
-      error_terms = error_std*rnorm(n, mean = 0, sd = 1)
-      y = X%*%true_beta + error_terms
-      X_transpose <- t(X)
-      
+for (i in 1:iterations){
+  # Generate data
+  X <- matrix(rnorm(n*p, mean = 0, sd = 1), nrow = n, ncol = p)
+  #Error terms
+  error_std <- 2
+  error_terms = error_std*rnorm(n, mean = 0, sd = 1)
+  y = X%*%true_beta + error_terms
+  X_transpose <- t(X)
+  
+  # Lasso Estimates
+  cv.lasso <- glmnet::cv.glmnet(X, y, alpha = 1, family = 'gaussian', intercept = FALSE)
+  lasso.estimates <- coef(cv.lasso, cv.lasso$lambda.min)[2:(p+1)]
+  lasso.estimates <- data.frame(matrix(lasso.estimates, nrow = 1))
+  colnames(lasso.estimates) <- paste("X", 1:p, sep = '')
+  
+  chain_df <- lasso.estimates[,c(1:(s+10))] %>%
+    tidyr::gather(component, value, X1:X30) %>%
+    dplyr::mutate(n = n, p =p, t_dist_df = 'lasso')
+  traceplots_df <- rbind(traceplots_df, chain_df)
+  stat_perform_df <-
+    rbind(stat_perform_df,
+          data.frame(n = n, p =p, t_dist_df = 'lasso',
+                     BetaMSE=BetaMSE(true_beta, lasso.estimates),
+                     XBetaMSE=XBetaMSE(true_beta, lasso.estimates, X),
+                     BetaHDCoverage0.95=NA))
+  stat_perform_componentwise_df <-
+    rbind(stat_perform_componentwise_df,
+          data.frame(n=n, p=p, t_dist_df = 'lasso', component = c(1:p),
+                     BetaHDCoverage0.95 = NA,
+                     ComponentwiseBetaMSE =
+                       ComponentwiseBetaMSE(true_beta, lasso.estimates)))
+  for (t_dist_df in c(seq(1,2,0.2),4,6,8)){
       if (t_dist_df==1){burnin <- 600} else {burnin <- 300}
       mc_chain_size <- burnin + 1000
 
@@ -110,7 +132,7 @@ for (t_dist_df in seq(1,2,0.2)){
 traceplots_df <- traceplots_df %>% 
   dplyr::filter(component %in% c('X1','X9','X13','X25'))
 
-#save(stat_perform_df, file = "examples/half_t_degree_of_freedom/stat_performance_t_dist_prior.RData")
+# save(stat_perform_df, file = "examples/half_t_degree_of_freedom/stat_performance_t_dist_prior.RData")
 #load(file = "examples/half_t_degree_of_freedom/stat_performance_t_dist_prior.RData")
 #save(stat_perform_componentwise_df, file = "examples/half_t_degree_of_freedom/stat_perform_componentwise_df.RData")
 #load(file = "examples/half_t_degree_of_freedom//stat_perform_componentwise_df.RData")
@@ -120,9 +142,14 @@ traceplots_df <- traceplots_df %>%
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 ## Plots ##
+# Lasso Estimates
+lasso.estimates <- traceplots_df %>% 
+  dplyr::filter(t_dist_df == 'lasso') %>%
+  dplyr::group_by(n, p, component) %>%
+  dplyr::summarise(lasso.mean = mean(value))
 # Traceplots
 traceplot_1 <- ggplot(traceplots_df %>% dplyr::group_by(n, p, t_dist_df) %>%
-                        dplyr::filter(component == 'X1'),
+                        dplyr::filter(component == 'X1',t_dist_df != 'lasso'),
                       aes(y = as.factor(t_dist_df))) +
   geom_density_ridges(alpha=0.8, scale = 0.8,
                       aes(x = value, group = as.factor(t_dist_df), 
@@ -141,7 +168,7 @@ traceplot_1
 #ggsave(filename = "examples/half_t_degree_of_freedom/traceplot_1.pdf", plot = traceplot_1, width = 4, height = 4.5)
 traceplot_2 <- ggplot(traceplots_df %>%
                         dplyr::group_by(n, p, t_dist_df) %>%
-                        dplyr::filter(component == 'X9'),
+                        dplyr::filter(component == 'X9',t_dist_df != 'lasso'),
                       aes(y = as.factor(t_dist_df))) +
   geom_density_ridges(alpha=0.8, scale = 0.8,
                       aes(x = value,
@@ -163,7 +190,7 @@ traceplot_2
 #ggsave(filename = "examples/half_t_degree_of_freedom/traceplot_2.pdf", plot = traceplot_2, width = 4, height = 4.5)
 traceplot_3 <- ggplot(traceplots_df %>%
                         dplyr::group_by(n, p, t_dist_df) %>%
-                        dplyr::filter(component == 'X13'),
+                        dplyr::filter(component == 'X13', t_dist_df != 'lasso'),
                       aes(y = as.factor(t_dist_df))) +
   geom_density_ridges(alpha=0.8, scale = 0.8,
                       aes(x = value,
@@ -186,7 +213,7 @@ traceplot_3
 #ggsave(filename = "examples/half_t_degree_of_freedom/traceplot_3.pdf", plot = traceplot_3, width = 4, height = 4.5)
 traceplot_4 <- ggplot(traceplots_df %>%
                         dplyr::group_by(n, p, t_dist_df) %>%
-                        dplyr::filter(component == 'X25'),
+                        dplyr::filter(component == 'X25', t_dist_df != 'lasso'),
                       aes(y = as.factor(t_dist_df))) +
   geom_density_ridges(alpha=0.8, scale = 0.8,
                       aes(x = value,
@@ -228,6 +255,24 @@ beta_mse <- ggplot(stat_perform_df,
   coord_flip()
 beta_mse
 #ggsave(filename = "examples/half_t_degree_of_freedom/beta_mse.pdf", plot = beta_mse, width = 4, height = 4)
+
+# Beta MSE
+beta_mse <- ggplot(stat_perform_df,
+                   aes(x=as.factor(t_dist_df), y=BetaMSE, fill=as.factor(t_dist_df))) +
+  geom_boxplot() + xlab(TeX('$\\nu$')) +
+  ylab(TeX('$ |\\beta_* - \\hat{\\beta} |_2^2 / p $')) +
+  scale_fill_manual(name=TeX('$\\nu$'),
+                    values = c(rep("white",6), rep("lightgrey",5))) +
+  # scale_fill_viridis_d(name=TeX('$\\nu$')) +
+  theme_classic(base_size = 16) +
+  theme(axis.text.x = element_text(size=12)) +
+  scale_x_discrete(breaks = c(seq(1,2,0.2),seq(2,8,2), 'lasso'),
+                   labels = c(seq(1,2,0.2),seq(2,8,2), 'Lasso')) +
+  # scale_y_continuous(breaks = seq(0,1,0.02)) +
+  theme(legend.position = "none")
+beta_mse
+#ggsave(filename = "examples/half_t_degree_of_freedom/beta_mse.pdf", plot = beta_mse, width = 4, height = 4)
+#ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/half_t_degree_of_freedom_plot/beta_mse2.pdf", plot = beta_mse, width = 4, height = 3)
 
 # XBeta MSE
 # Xbeta_mse <- ggplot(stat_perform_df,

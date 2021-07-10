@@ -1,20 +1,22 @@
 ## Figures and examples from the article
- - Folder `beta_marginal_density` contains a script which reproduces the bivariate density plots (*Figure 2*).
- - Folder `one_scale_coupling` contains scripts which reproduce the one-scale coupling algorithm meeting time plot (*Figure 3*):
+- Folder `one_scale_coupling` contains scripts which reproduce the one-scale coupling algorithm meeting time plot:
 	 - `one_scale_coupling_meeting_times.R` generates meeting times.
-	 - `one_scale_coupling_plots.R` generates the meeting times plot (*Figure 3*). 
- - Folder `two_scale_coupling` contains scripts which reproduce figures related to the two-scale coupling algorithm:
-	 - `metric_comparison_plot.R` reproduces metric trajectories plot (*Figure 4*).
-	 - `d_threshold_trajectory_plots.R` reproduces the metric trajectories under different values of the metric threshold plot (*Figure 5a*).
-	 - `d_threshold_crn_distance_by_p.R` reproduces the metric histrogram with common random numbers under different dimensions plot (*Figure 5b*).
-	 - `d_threshold_meeting_times_p500.R` reproduces the meeting times under different values of the metric threshold plot (*Figure 5c*).
-	 -  `two_scale_coupling_meeting_time_plots.R` generates two-scale coupling meeting time for synthetic datasets, and  `one_scale_two_scale_coupling_comparison_plots.R` reproduces the meeting times comparison plot under the one-scale and the two-scale coupling algorithms (*Figure 6*).
-- Folder `half_t_degree_of_freedom` contains scripts which reproduce figures related to different degree of freedom for the the Half-t prior:
-	 - `degree_of_freedom_crn_distance_by_p.R` reproduces metric trajectories plot under different degrees of freedom  (*Figure 7a*).
-	 - `degree_of_freedom_meet_times.R` reproduces plots related to meeting times of the two-scale algorithm under different degrees of freedom  (*Figure 7b,c*).
-	 - 	`degree_of_freedom_Llag.R` reproduces plots related to L-Lag total variation bounds and mixing times based on the two-scale algorithm under different degrees of freedom  (*Figure 8*).
-	 - 	 `degree_of_freedom_stat_performance.R` reproduces plots related to statistical performance under different degrees of freedom  (*Figures 9 & 10*).
-	 - `stat_estimation_computation_tradeoff.R` reproduces plots related to statistical estimation and meeting times trade-off under different degrees of freedom  (*Figures 1b & 1c*).
-- Folder `half_t_degree_of_freedom` contains scripts which reproduce figures related to different degree of freedom for the the Half-t prior:
-	 - `degree_of_freedom_crn_distance_by_p.R` reproduces metric trajectories plot under different degrees of freedom  (*Figure 7a*).
-- Folder `gwas` contains scripts related to the GWAS dataset example in Section 4. The GWAS dataset is not available publicly, but we have included the scripts here for reference. 
+	 - `one_scale_coupling_plots.R` generates the meeting times plot.
+- Folder `two_scale_coupling` contains scripts which reproduce figures related to the two-scale coupling algorithm:
+ 	 - `two_scale_coupling_meeting_times.R` generates two-scale coupling meeting time for synthetic datasets, and  `one_scale_two_scale_coupling_comparison_plots.R` reproduces the meeting times comparison plot under the one-scale and the two-scale coupling algorithms.
+	 - `metric_comparison_plot.R` reproduces metric trajectories plot.
+	 - `d_threshold_trajectory_plots.R` reproduces the metric trajectories under different values of the metric threshold plot (*Appendices*).
+	 - `d_threshold_crn_distance_by_p.R` reproduces the metric histrogram with common random numbers under different dimensions plot (*Appendices*).
+	 - `d_threshold_meeting_times_p500.R` reproduces the meeting times under different values of the metric threshold plot (*Appendices*).
+- Folder `switch_to_crn_coupling` contains scripts which reproduce figures related to the two-scale coupling algorithm:
+	 - `switch_to_crn_coupling_comparison_plots.R` generates meeting times and the plot comparing the two scale and switch to CRN coupling algorithms.
+- Folder `half_t_degree_of_freedom` contains scripts which reproduce figures related to different degrees of freedom for the the Half-t prior:
+	 - `degree_of_freedom_meet_times.R` reproduces plots related to meeting times of the two-scale algorithm under different degrees of freedom.
+	 - `degree_of_freedom_stat_performance.R` reproduces plots related to statistical performance under different degrees of freedom.
+	 - `degree_of_freedom_crn_distance_by_p.R` reproduces metric trajectories plot under different degrees of freedom  (*Appendices*).
+	 - `degree_of_freedom_Llag.R` reproduces plots related to L-Lag total variation bounds and mixing times based on the two-scale algorithm under different degrees of freedom  (*Appendices*).
+- Folder `gwas` contains scripts related to the GWAS dataset example in Section 4. 
+	 - `gwas_riboflavin_tv_bounds.R` simulates meeting times and reproduces plots related to L-Lag total variation bounds for the riboflavin example. The riboflavin GWAS dataset from Bühlmann et al. [2014] is included.
+	 - The maize GWAS dataset is not available publicly, but we have included the cluster computing scripts here for reference. 
+- Folder `beta_marginal_density` contains a script which reproduces bivariate density plots (*Appendices*).
+

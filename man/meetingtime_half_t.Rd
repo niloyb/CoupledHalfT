@@ -23,7 +23,8 @@ meetingtime_half_t(
   lag = 1,
   xi_fixed = FALSE,
   sigma2_fixed = FALSE,
-  t_dist_df
+  t_dist_df,
+  two_scale = TRUE
 )
 }
 \arguments{

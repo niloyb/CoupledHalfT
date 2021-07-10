@@ -77,9 +77,9 @@ metric_d_plot_crn <-
   #scale_y_continuous(limits = c(0,1)) +
   scale_y_log10() + 
   scale_colour_viridis_d(name=TeX('$Metric$'), 
-                         labels = unname(TeX(c("$d(C^{(1)}, C^{(2)})", 
-                                               "$\\sum_j | m_j^{(1)}-m_j^{(2)}  |",
-                                               "$\\sum_j | \\log(m^{(1)}_j / m^{(2)}_j) |")))) +
+                         labels = unname(TeX(c("$d(C, \\tilde{C})", 
+                                               "$\\sum_j | m_j- \\tilde{m}_j  |",
+                                               "$\\sum_j | \\log(m_j / \\tilde{m}_j) |")))) +
   theme_classic(base_size = 18) + theme(legend.position = 'right')
 metric_d_plot_crn
 #ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/two_scale_coupling_plot/choice_of_metric_d_plot.pdf", plot = metric_d_plot_crn, width = 8, height = 3)

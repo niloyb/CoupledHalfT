@@ -253,43 +253,59 @@ coupled_half_t_kernel <-
            beta_1_current, beta_2_current, eta_1_current, eta_2_current,
            approximate_algo_delta=0, epsilon_eta = 0.5,
            epsilon_xi = Inf, epsilon_sigma2=Inf, nrepeats_eta=1,
-           verbose = FALSE, xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df)
+           verbose = FALSE, xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df,
+           two_scale=TRUE)
   {
     n <- dim(X)[1]
     p <- dim(X)[2]
 
     if (verbose) ptm <- proc.time()
-    # When epsilon_eta >=1, relative_error_delta <= epsilon_eta always.
-    if(epsilon_eta >= 1){
-      relative_error_delta <- 1
-    } else {
-      relative_error_delta <-
-        half_t_max_couple_prob(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
-                               xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
-                               t_dist_df, iterations=1)
-      # Checking overflow
-      # if(typeof(relative_error_delta)=='list') return(relative_error_delta)
-    }
-    if (verbose) print(relative_error_delta)
-
-    if (relative_error_delta <= epsilon_eta){ # Using max coupling of 1-step slice sampling when close
-      eta_sample <-
-        eta_update_half_t_max_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
-                                     xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
-                                     t_dist_df)
-    } else {
-      if (is.infinite(nrepeats_eta)){ stop("Number of slice sampling must be finite") }
-      else {
-        for (i in 1:nrepeats_eta) {
-          eta_sample <-
-            eta_update_half_t_crn_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
-                                         xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
-                                         t_dist_df)
-          eta_1_current <- eta_sample[,1]
-          eta_2_current <- eta_sample[,2]
+    
+    if(two_scale){
+      # Calculating the metric
+      # When epsilon_eta >=1, relative_error_delta <= epsilon_eta always.
+      if(epsilon_eta >= 1){
+        relative_error_delta <- 1
+      } else {
+        relative_error_delta <-
+          half_t_max_couple_prob(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
+                                 xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
+                                 t_dist_df, iterations=1)
+        # Checking overflow
+        # if(typeof(relative_error_delta)=='list') return(relative_error_delta)
+      }
+      if (verbose) print(relative_error_delta)
+      
+      if (relative_error_delta <= epsilon_eta){ # Using max coupling of 1-step slice sampling when close
+        eta_sample <-
+          eta_update_half_t_max_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
+                                       xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
+                                       t_dist_df)
+        # eta_sample <-
+        #   eta_update_half_t_max_couple_till_you_miss(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
+        #                                              xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
+        #                                              t_dist_df)
+      } else {
+        if (is.infinite(nrepeats_eta)){ stop("Number of slice sampling must be finite") }
+        else {
+          for (i in 1:nrepeats_eta) {
+            eta_sample <-
+              eta_update_half_t_crn_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
+                                           xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
+                                           t_dist_df)
+            eta_1_current <- eta_sample[,1]
+            eta_2_current <- eta_sample[,2]
+          }
         }
       }
+    } else {
+      relative_error_delta <- 1 # Now no need to calculate the metric
+      eta_sample <-
+        eta_update_half_t_max_couple_till_you_miss(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
+                                                   xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
+                                                   t_dist_df)
     }
+    
     eta_1_new <- eta_sample[,1]
     eta_2_new <- eta_sample[,2]
     if (verbose) print(proc.time()[3]-ptm[3])
@@ -367,7 +383,8 @@ coupled_half_t_mcmc <-
   function(mc_chain_size, X, X_transpose, y, a0=1, b0=1, std_MH=0.8, rinit=NULL,
            approximate_algo_delta=0, epsilon_eta=0.5, epsilon_xi=Inf, epsilon_sigma2=Inf,
            nrepeats_eta=1, verbose = FALSE, preallocate = 100, max_iterations = Inf,
-           totalduration = Inf, xi_fixed=FALSE, sigma2_fixed=FALSE, lag=1, t_dist_df)
+           totalduration = Inf, xi_fixed=FALSE, sigma2_fixed=FALSE, lag=1, t_dist_df,
+           two_scale=TRUE)
 {
   starttime <- Sys.time() # record starting time
   n <- dim(X)[1]
@@ -472,7 +489,8 @@ coupled_half_t_mcmc <-
                               approximate_algo_delta = approximate_algo_delta,
                               epsilon_eta = epsilon_eta, epsilon_xi = epsilon_xi, epsilon_sigma2 = epsilon_sigma2,
                               nrepeats_eta = nrepeats_eta, verbose = verbose,
-                              xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df)
+                              xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df,
+                              two_scale=two_scale)
       xi_1_current <- output$xi_1_samples
       sigma2_1_current <- output$sigma2_1_samples
       beta_1_current <- output$beta_1_samples
@@ -567,7 +585,7 @@ meetingtime_half_t <-
   function(X, X_transpose, y, a0=1, b0=1, std_MH=0.8, rinit=NULL, approximate_algo_delta=0,
            epsilon_eta=0.5, epsilon_xi=Inf, epsilon_sigma2=Inf, nrepeats_eta=1,
            verbose = FALSE, max_iterations = Inf, totalduration = Inf, lag=1,
-           xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df){
+           xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df, two_scale=TRUE){
   starttime <- Sys.time() # record starting time
   n <- dim(X)[1]
   p <- dim(X)[2]
@@ -631,7 +649,8 @@ meetingtime_half_t <-
                             approximate_algo_delta = approximate_algo_delta,
                             epsilon_eta = epsilon_eta, epsilon_xi = epsilon_xi, epsilon_sigma2 = epsilon_sigma2,
                             nrepeats_eta = nrepeats_eta, verbose = verbose,
-                            xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df)
+                            xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df,
+                            two_scale=two_scale)
     # Checking overflow
     # if (!is.null(output$coupled_u)) return(output)
     xi_1_current <- output$xi_1_samples

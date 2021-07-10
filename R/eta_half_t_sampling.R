@@ -24,7 +24,7 @@ low_inc_gamma <- function(rate, upper_truncation, log = TRUE){
 #' @details qgamma is the quantile function of the gamma distribution
 #' @seealso \code{\link{low_inc_gamma}} and \code{\link[zipfR]{Rgamma.inv()}}
 #' @export
-low_inc_gamma_inv <- function(rate, y, log = TRUE) {
+low_inc_gamma_inv <- function(rate, y, log = TRUE){
   # If log=TRUE, the parameter y is taken to be on the natural logarithmic scale.
   if (log){
     if (any(y==0)){stop("Warnings: possible underflow")}
@@ -278,5 +278,41 @@ half_t_max_couple_prob <- function(xi_1, Beta_1, eta_1, sigma2_1,
   }
   return(mean(tv_ub))
 }
+
+##### New coupling scheme #####
+## CRN Coupling of Eta Update
+#' eta_update_half_t_max_couple_till_you_miss
+#' @description Max Coupling componentwise until no meeting. Then CRN componentwise.
+#' @param xi_1,xi_2 xi values from the pair of chains
+#' @param Beta_1,Beta_2 beta values (each vector of length p) from the pair of chains
+#' @param eta_1,eta_2 eta values (each vector of length p) from the pair of chains
+#' @param sigma2_1,sigma2_2 sigma values from the pair of chains
+#' @param t_dist_df half-t degree of freedom
+#' @return Returns (eta_1, eta_2) under common random numbers coupling
+#' @export
+eta_update_half_t_max_couple_till_you_miss <- 
+  function(xi_1, Beta_1, eta_1, sigma2_1, xi_2, Beta_2, eta_2, sigma2_2, t_dist_df){
+    p <- length(eta_1)
+    eta_sample <- cbind(rep(NA,p), rep(NA,p))
+    ordered_components <- sample(c(1:p)) # c(1:p)
+    max_couple <- TRUE
+    for(i in 1:p){
+      eta_sample[ordered_components[i],] <- 
+        eta_update_half_t_max_couple(xi_1, Beta_1[ordered_components[i]], eta_1[ordered_components[i]], sigma2_1,
+                                     xi_2, Beta_2[ordered_components[i]], eta_2[ordered_components[i]], sigma2_2, 
+                                     t_dist_df)
+      if(eta_sample[ordered_components[i],1]!=eta_sample[ordered_components[i],2]){break}
+    }
+    if(i<p){
+      eta_sample[ordered_components[(i+1):p],] <- 
+        eta_update_half_t_crn_couple(xi_1, Beta_1[ordered_components[(i+1):p]], eta_1[ordered_components[(i+1):p]], sigma2_1,
+                                     xi_2, Beta_2[ordered_components[(i+1):p]], eta_2[ordered_components[(i+1):p]], sigma2_2, 
+                                     t_dist_df)
+    }
+    return(eta_sample)
+  }
+
+
+
 
 

@@ -25,7 +25,8 @@ coupled_half_t_mcmc(
   xi_fixed = FALSE,
   sigma2_fixed = FALSE,
   lag = 1,
-  t_dist_df
+  t_dist_df,
+  two_scale = TRUE
 )
 }
 \arguments{
