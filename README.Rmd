@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## CoupledHalfT
 
-This package contains scripts to reproduce the results of article "Coupled Markov chain Monte Carlo for high-dimensional regression with Half-t priors", by Niloy Biswas, Anirban Bhattacharya, Pierre E. Jacob and James E. Johndrow (https://arxiv.org/abs/2012.04798).
+This package contains scripts to reproduce the results of article "Coupling-based convergence assessment of some Gibbs samplers for high-dimensional Bayesian regression with shrinkage priors", by Niloy Biswas, Anirban Bhattacharya, Pierre E. Jacob and James E. Johndrow (https://arxiv.org/abs/2012.04798).
 
 ### Installation
 
