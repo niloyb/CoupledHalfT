@@ -28,7 +28,8 @@ coupled_half_t_kernel(
   xi_fixed = FALSE,
   sigma2_fixed = FALSE,
   t_dist_df,
-  two_scale = TRUE
+  two_scale = TRUE,
+  xi_interval
 )
 }
 \arguments{
@@ -69,6 +70,8 @@ coupled_half_t_kernel(
 \item{sigma2_fixed}{boolean for fixing / not fixing sigma2}
 
 \item{t_dist_df}{degree of freedom v>=1 for Half-t(v).}
+
+\item{xi_interval}{support of prior distribution of xi}
 }
 \value{
 (beta1, beta2, eta1, eta2, sigma2_1, sigma2_2, xi1, xi2, metric_d)

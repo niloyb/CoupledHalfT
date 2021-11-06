@@ -17,6 +17,8 @@
 	 - `degree_of_freedom_Llag.R` reproduces plots related to L-Lag total variation bounds and mixing times based on the two-scale algorithm under different degrees of freedom  (*Appendices*).
 - Folder `gwas` contains scripts related to the GWAS dataset example in Section 4. 
 	 - `gwas_riboflavin_tv_bounds.R` simulates meeting times and reproduces plots related to L-Lag total variation bounds for the riboflavin example. The riboflavin GWAS dataset from Bühlmann et al. [2014] is included.
+	 - `gwas_riboflavin_unbiased_estimates.R` generates unbiased estimates of the posterior for the riboflavin example. The riboflavin GWAS dataset from Bühlmann et al. [2014] is included.
 	 - The maize GWAS dataset is not available publicly, but we have included the cluster computing scripts here for reference. 
 - Folder `beta_marginal_density` contains a script which reproduces bivariate density plots (*Appendices*).
+- Folder `truncated_prior_xi` contains scripts which reproduce figures with a compactly supported prior for the global scale parameter (*Appendices*).
 

@@ -55,9 +55,10 @@ M_matrix <- function(xi, eta, X_eta_tX_matrix, n){
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @return Unnormalized posterior pdf of log(xi)
 #' @export
-log_ratio <- function(xi, eta, X_eta_tX_matrix, y, a0, b0)
+log_ratio <- function(xi, eta, X_eta_tX_matrix, y, a0, b0, xi_interval)
 {
   n <- length(y)
   M <- M_matrix(xi,eta,X_eta_tX_matrix,n)
@@ -66,7 +67,13 @@ log_ratio <- function(xi, eta, X_eta_tX_matrix, y, a0, b0)
   M_inverse <- chol2inv(chol_M)
   ssr <- b0 + t(y)%*%((M_inverse)%*%y)
   log_likelihood <- -0.5*log_det_M -0.5*(n+a0)*log(ssr)
-  log_prob <- -log(sqrt(xi)*(1+xi))
+  
+  if((xi_interval[1]<=xi)&(xi<=xi_interval[2])){
+    log_prob <- -log(sqrt(xi)*(1+xi))
+  } else {
+    log_prob <- log(0)
+  }
+  
   return(list('log_likelihood'=log_likelihood+log_prob,
               'ssr' = ssr, 'M_matrix_inverse' = M_inverse))
 }
@@ -80,13 +87,21 @@ log_ratio <- function(xi, eta, X_eta_tX_matrix, y, a0, b0)
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param active_set length p vector of booleans
 #' @return Unnormalized posterior pdf of log(xi)
 #' @export
-log_ratio_approx <- function(xi, eta, X, X_transpose, y, a0, b0, active_set)
+log_ratio_approx <- function(xi, eta, X, X_transpose, y, a0, b0, active_set,
+                             xi_interval)
 {
   n <- length(y)
-  log_prob <- -log(sqrt(xi)*(1+xi))
+  
+  if((xi_interval[1]<=xi)&(xi<=xi_interval[2])){
+    log_prob <- -log(sqrt(xi)*(1+xi))
+  } else {
+    log_prob <- log(0)
+  }
+  
   if (sum(active_set)==0)
   {
     M_inverse <- diag(n)
@@ -121,12 +136,13 @@ log_ratio_approx <- function(xi, eta, X, X_transpose, y, a0, b0, active_set)
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param std_MH standard deviation of log-normal MH proposal
 #' @param approximate_algo_delta approximate MCMC error (non-negative scalar)
 #' @return Metropolis-Hastings update of xi given eta
 #' @export
 xi_update <- function(current_xi, eta, X, X_transpose, y, a0, b0, std_MH,
-                      approximate_algo_delta=0, fixed=FALSE)
+                      approximate_algo_delta=0, fixed=FALSE, xi_interval)
 {
   n <- length(y)
   if (fixed==TRUE){
@@ -139,10 +155,10 @@ xi_update <- function(current_xi, eta, X, X_transpose, y, a0, b0, std_MH,
       X_eta_tX_matrix <- X_eta_tX(eta[active_set], X[ ,active_set,drop=F],
                                   X_transpose[active_set, ,drop=F])
       log_ratio_current_and_ssr <- log_ratio(current_xi, eta[active_set],
-                                             X_eta_tX_matrix, y, a0, b0)
+                                             X_eta_tX_matrix, y, a0, b0, xi_interval)
     } else { # Woodbury inversion when sum(active_set)<n
       log_ratio_current_and_ssr <-
-        log_ratio_approx(current_xi, eta, X, X_transpose, y, a0, b0, active_set)
+        log_ratio_approx(current_xi, eta, X, X_transpose, y, a0, b0, active_set, xi_interval)
     }
   } else {
     proposed_xi <- exp(rnorm(1, log(current_xi), std_MH))
@@ -155,14 +171,14 @@ xi_update <- function(current_xi, eta, X, X_transpose, y, a0, b0, std_MH,
       X_eta_tX_matrix <- X_eta_tX(eta[active_set],X[ ,active_set,drop=F],
                                   X_transpose[active_set, ,drop=F])
       log_ratio_current_and_ssr <- log_ratio(current_xi, eta[active_set],
-                                             X_eta_tX_matrix, y, a0, b0)
+                                             X_eta_tX_matrix, y, a0, b0, xi_interval)
       log_ratio_proposed_and_ssr <- log_ratio(proposed_xi, eta[active_set],
-                                              X_eta_tX_matrix, y, a0, b0)
+                                              X_eta_tX_matrix, y, a0, b0, xi_interval)
     } else { # Woodbury inversion when sum(active_set)<n
       log_ratio_current_and_ssr <-
-        log_ratio_approx(current_xi, eta, X, X_transpose, y, a0, b0, active_set)
+        log_ratio_approx(current_xi, eta, X, X_transpose, y, a0, b0, active_set, xi_interval)
       log_ratio_proposed_and_ssr <-
-        log_ratio_approx(proposed_xi, eta, X, X_transpose, y, a0, b0, active_set)
+        log_ratio_approx(proposed_xi, eta, X, X_transpose, y, a0, b0, active_set, xi_interval)
     }
     
     # MH accept- reject step
@@ -237,6 +253,7 @@ beta_update <- function(xi, sigma2, eta, X, X_transpose, y,
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param std_MH standard deviation of log-normal MH proposal
 #' @param xi_current current xi value (positive scalar)
 #' @param sigma2_current current sigma2 value (positive scalar)
@@ -255,14 +272,15 @@ half_t_kernel <-
            xi_current, sigma2_current,
            beta_current, eta_current, approximate_algo_delta,
            nrepeats_eta = 1, verbose = FALSE,
-           xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df)
+           xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df, 
+           xi_interval)
   {
     if (verbose) ptm <- proc.time()
     n <- dim(X)[1]
     p <- dim(X)[2]
     # xi update
     xi_new <- xi_update(xi_current, eta_current, X, X_transpose, y, a0, b0, std_MH,
-                        approximate_algo_delta, fixed=xi_fixed)
+                        approximate_algo_delta, fixed=xi_fixed, xi_interval=xi_interval)
     # sigma2 update
     sigma2_fixed_value <- NULL
     if(sigma2_fixed==TRUE) sigma2_fixed_value <- sigma2_current
@@ -290,6 +308,7 @@ half_t_kernel <-
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param rinit Initial distribution
 #' @param xi_current current xi value (positive scalar)
 #' @param sigma2_current current sigma2 value (positive scalar)
@@ -306,14 +325,17 @@ half_t_kernel <-
 half_t_mcmc <-
   function(chain_length, burnin, X, X_transpose, y, a0=1, b0=1, std_MH=0.8,
            rinit=NULL, approximate_algo_delta=0, nrepeats_eta = 1,
-           verbose = FALSE, xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df)
+           verbose = FALSE, xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df,
+           xi_interval=c(0,Inf))
   {
     n <- dim(X)[1]
     p <- dim(X)[2]
     if(is.null(rinit)){
       # Initializing from the prior
       rinit <- function(){
-        xi <- (1/rt(1, df=1))^2
+        # xi <- (1/rt(1, df=1))^2
+        xi <- tan(runif(1)*(atan(xi_interval[2]^0.5)-atan(xi_interval[1]^0.5))+
+                    atan(xi_interval[1]^0.5))^2
         sigma2 <- 1/rgamma(1, shape = a0/2, rate = b0/2)
         eta <- (1/rt(p, df=t_dist_df))^2
         beta <- rnorm(p)*sqrt(sigma2/(xi*eta))
@@ -339,7 +361,7 @@ half_t_mcmc <-
                       xi_current, sigma2_current, beta_current, eta_current,
                       approximate_algo_delta, nrepeats_eta = nrepeats_eta,
                       verbose = verbose, xi_fixed=xi_fixed,
-                      sigma2_fixed=sigma2_fixed, t_dist_df)
+                      sigma2_fixed=sigma2_fixed, t_dist_df, xi_interval=xi_interval)
       xi_current <- output$xi_samples
       sigma2_current <- output$sigma2_samples
       beta_current <- output$beta_samples

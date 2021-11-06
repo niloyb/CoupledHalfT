@@ -12,6 +12,7 @@ require(lubridate)
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param std_MH standard deviation of log-normal MH proposal
 #' @param approximate_algo_delta approximate MCMC error (non-negative scalar)
 #' @param epsilon_xi threshold (when above/below use common random numbers/ maximal coupling of proposals)
@@ -19,7 +20,8 @@ require(lubridate)
 #' @export
 crn_max_xi_coupling <- function(current_xi_1, eta_1, current_xi_2, eta_2,
                                 X, X_transpose, y, a0, b0, std_MH,
-                                approximate_algo_delta=0, epsilon_xi=0, fixed=FALSE)
+                                approximate_algo_delta=0, epsilon_xi=0, fixed=FALSE,
+                                xi_interval)
 {
   if(fixed==TRUE){ # When xi is fixed in the Gibbs sampler
     min_xi_1 <- current_xi_1
@@ -33,10 +35,10 @@ crn_max_xi_coupling <- function(current_xi_1, eta_1, current_xi_2, eta_2,
         X_eta_tX(eta_1[active_set_1],X[, active_set_1, drop=F],
                  X_transpose[active_set_1, , drop=F])
       log_ratio_current_ssr_matrixinv_1 <-
-        log_ratio(current_xi_1, eta_1[active_set_1], X_eta_tX_matrix_1, y, a0, b0)
+        log_ratio(current_xi_1, eta_1[active_set_1], X_eta_tX_matrix_1, y, a0, b0, xi_interval)
     } else {
       log_ratio_current_ssr_matrixinv_1 <-
-        log_ratio_approx(current_xi_1, eta_1, X, X_transpose, y, a0, b0, active_set_1)
+        log_ratio_approx(current_xi_1, eta_1, X, X_transpose, y, a0, b0, active_set_1, xi_interval)
     }
 
     if (sum(active_set_2)>n)
@@ -44,10 +46,10 @@ crn_max_xi_coupling <- function(current_xi_1, eta_1, current_xi_2, eta_2,
       X_eta_tX_matrix_2 <-
         X_eta_tX(eta_2[active_set_2],X[, active_set_2, , drop=F], X_transpose[active_set_2, , drop=F])
       log_ratio_current_ssr_matrixinv_2 <-
-        log_ratio(current_xi_2, eta_2[active_set_2], X_eta_tX_matrix_2, y, a0, b0)
+        log_ratio(current_xi_2, eta_2[active_set_2], X_eta_tX_matrix_2, y, a0, b0, xi_interval)
     } else {
       log_ratio_current_ssr_matrixinv_2 <-
-        log_ratio_approx(current_xi_2, eta_2, X, X_transpose, y, a0, b0, active_set_2)
+        log_ratio_approx(current_xi_2, eta_2, X, X_transpose, y, a0, b0, active_set_2, xi_interval)
     }
   } else { # When xi is varying in the Gibbs sampler
     standard_normal <- rnorm(1, mean = 0, sd = 1)
@@ -90,21 +92,21 @@ crn_max_xi_coupling <- function(current_xi_1, eta_1, current_xi_2, eta_2,
     if (sum(active_set_1)>n)
     {
       X_eta_tX_matrix_1 <- X_eta_tX(eta_1[active_set_1],X[, active_set_1, drop=F], X_transpose[active_set_1, , drop=F])
-      log_ratio_current_ssr_matrixinv_1 <- log_ratio(current_xi_1, eta_1[active_set_1], X_eta_tX_matrix_1, y, a0, b0)
-      log_ratio_proposed_ssr_matrixinv_1 <- log_ratio(proposed_xi_1, eta_1[active_set_1], X_eta_tX_matrix_1, y, a0, b0)
+      log_ratio_current_ssr_matrixinv_1 <- log_ratio(current_xi_1, eta_1[active_set_1], X_eta_tX_matrix_1, y, a0, b0, xi_interval)
+      log_ratio_proposed_ssr_matrixinv_1 <- log_ratio(proposed_xi_1, eta_1[active_set_1], X_eta_tX_matrix_1, y, a0, b0, xi_interval)
     } else {
-      log_ratio_current_ssr_matrixinv_1 <- log_ratio_approx(current_xi_1, eta_1, X, X_transpose, y, a0, b0, active_set_1)
-      log_ratio_proposed_ssr_matrixinv_1 <- log_ratio_approx(proposed_xi_1, eta_1, X, X_transpose, y, a0, b0, active_set_1)
+      log_ratio_current_ssr_matrixinv_1 <- log_ratio_approx(current_xi_1, eta_1, X, X_transpose, y, a0, b0, active_set_1, xi_interval)
+      log_ratio_proposed_ssr_matrixinv_1 <- log_ratio_approx(proposed_xi_1, eta_1, X, X_transpose, y, a0, b0, active_set_1, xi_interval)
     }
 
     if (sum(active_set_2)>n)
     {
       X_eta_tX_matrix_2 <- X_eta_tX(eta_2[active_set_2],X[, active_set_2, , drop=F], X_transpose[active_set_2, , drop=F])
-      log_ratio_current_ssr_matrixinv_2 <- log_ratio(current_xi_2, eta_2[active_set_2], X_eta_tX_matrix_2, y, a0, b0)
-      log_ratio_proposed_ssr_matrixinv_2 <- log_ratio(proposed_xi_2, eta_2[active_set_2], X_eta_tX_matrix_2, y, a0, b0)
+      log_ratio_current_ssr_matrixinv_2 <- log_ratio(current_xi_2, eta_2[active_set_2], X_eta_tX_matrix_2, y, a0, b0, xi_interval)
+      log_ratio_proposed_ssr_matrixinv_2 <- log_ratio(proposed_xi_2, eta_2[active_set_2], X_eta_tX_matrix_2, y, a0, b0, xi_interval)
     } else {
-      log_ratio_current_ssr_matrixinv_2 <- log_ratio_approx(current_xi_2, eta_2, X, X_transpose, y, a0, b0, active_set_2)
-      log_ratio_proposed_ssr_matrixinv_2 <- log_ratio_approx(proposed_xi_2, eta_2, X, X_transpose, y, a0, b0, active_set_2)
+      log_ratio_current_ssr_matrixinv_2 <- log_ratio_approx(current_xi_2, eta_2, X, X_transpose, y, a0, b0, active_set_2, xi_interval)
+      log_ratio_proposed_ssr_matrixinv_2 <- log_ratio_approx(proposed_xi_2, eta_2, X, X_transpose, y, a0, b0, active_set_2, xi_interval)
     }
 
     log_u <- log(runif(1))
@@ -231,6 +233,7 @@ crn_joint_beta_update <-
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param std_MH standard deviation of log-normal MH proposal
 #' @param xi_1_current,xi_2_current current xi values (positive scalar)
 #' @param sigma2_1_current,sigma2_2_current current sigma2 values (positive scalar)
@@ -254,7 +257,7 @@ coupled_half_t_kernel <-
            approximate_algo_delta=0, epsilon_eta = 0.5,
            epsilon_xi = Inf, epsilon_sigma2=Inf, nrepeats_eta=1,
            verbose = FALSE, xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df,
-           two_scale=TRUE)
+           two_scale=TRUE, xi_interval)
   {
     n <- dim(X)[1]
     p <- dim(X)[2]
@@ -316,7 +319,7 @@ coupled_half_t_kernel <-
     xi_sample <-
       crn_max_xi_coupling(xi_1_current, eta_1_new, xi_2_current, eta_2_new,
                           X, X_transpose, y, a0, b0, std_MH,
-                          approximate_algo_delta, epsilon_xi, fixed=xi_fixed)
+                          approximate_algo_delta, epsilon_xi, fixed=xi_fixed, xi_interval)
     xi_1_new <- xi_sample$xi_values[1]
     xi_2_new <- xi_sample$xi_values[2]
     if (verbose) print(proc.time()[3]-ptm[3])
@@ -363,6 +366,7 @@ coupled_half_t_kernel <-
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param rinit Initial distribution
 #' @param approximate_algo_delta approximate MCMC error (non-negative scalar)
 #' @param epsilon_eta eta common random numbers/ maximal coupling coupling threshold
@@ -384,7 +388,7 @@ coupled_half_t_mcmc <-
            approximate_algo_delta=0, epsilon_eta=0.5, epsilon_xi=Inf, epsilon_sigma2=Inf,
            nrepeats_eta=1, verbose = FALSE, preallocate = 100, max_iterations = Inf,
            totalduration = Inf, xi_fixed=FALSE, sigma2_fixed=FALSE, lag=1, t_dist_df,
-           two_scale=TRUE)
+           two_scale=TRUE, xi_interval=c(0,Inf))
 {
   starttime <- Sys.time() # record starting time
   n <- dim(X)[1]
@@ -393,7 +397,9 @@ coupled_half_t_mcmc <-
   if(is.null(rinit)){
     # Initializing from the prior
     rinit <- function(){
-      xi <- (1/rt(1, df=1))^2
+      # xi <- (1/rt(1, df=1))^2
+      xi <- tan(runif(1)*(atan(xi_interval[2]^0.5)-atan(xi_interval[1]^0.5))+
+                  atan(xi_interval[1]^0.5))^2
       sigma2 <- 1/rgamma(1, shape = a0/2, rate = b0/2)
       eta <- (1/rt(p, df=t_dist_df))^2
       beta <- rnorm(p)*sqrt(sigma2/(xi*eta))
@@ -435,7 +441,7 @@ coupled_half_t_mcmc <-
                     xi_1_current, sigma2_1_current, beta_1_current, eta_1_current,
                     approximate_algo_delta=approximate_algo_delta,
                     nrepeats_eta = nrepeats_eta, verbose = verbose,
-                    xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df)
+                    xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df, xi_interval)
     xi_1_current <- first_chain_update$xi_samples
     sigma2_1_current <- first_chain_update$sigma2_samples
     beta_1_current <- first_chain_update$beta_samples
@@ -469,7 +475,7 @@ coupled_half_t_mcmc <-
                       xi_1_current, sigma2_1_current, beta_1_current, eta_1_current,
                       approximate_algo_delta=approximate_algo_delta,
                       nrepeats_eta = nrepeats_eta, verbose = verbose,
-                      xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df)
+                      xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df, xi_interval)
       # chain_state2 <- chain_state1
       xi_1_current <- first_chain_update$xi_samples
       sigma2_1_current <- first_chain_update$sigma2_samples
@@ -490,7 +496,7 @@ coupled_half_t_mcmc <-
                               epsilon_eta = epsilon_eta, epsilon_xi = epsilon_xi, epsilon_sigma2 = epsilon_sigma2,
                               nrepeats_eta = nrepeats_eta, verbose = verbose,
                               xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df,
-                              two_scale=two_scale)
+                              two_scale=two_scale, xi_interval)
       xi_1_current <- output$xi_1_samples
       sigma2_1_current <- output$sigma2_1_samples
       beta_1_current <- output$beta_1_samples
@@ -566,6 +572,7 @@ coupled_half_t_mcmc <-
 #' @param y length n vector
 #' @param a0 positive scalar
 #' @param b0 positive scalar
+#' @param xi_interval support of prior distribution of xi
 #' @param rinit Initial distribution
 #' @param approximate_algo_delta approximate MCMC error (non-negative scalar)
 #' @param epsilon_eta eta common random numbers/ maximal coupling coupling threshold
@@ -585,7 +592,7 @@ meetingtime_half_t <-
   function(X, X_transpose, y, a0=1, b0=1, std_MH=0.8, rinit=NULL, approximate_algo_delta=0,
            epsilon_eta=0.5, epsilon_xi=Inf, epsilon_sigma2=Inf, nrepeats_eta=1,
            verbose = FALSE, max_iterations = Inf, totalduration = Inf, lag=1,
-           xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df, two_scale=TRUE){
+           xi_fixed=FALSE, sigma2_fixed=FALSE, t_dist_df, two_scale=TRUE, xi_interval=c(0,Inf)){
   starttime <- Sys.time() # record starting time
   n <- dim(X)[1]
   p <- dim(X)[2]
@@ -593,7 +600,9 @@ meetingtime_half_t <-
   if(is.null(rinit)){
     # Initializing from the prior
     rinit <- function(){
-      xi <- (1/rt(1, df=1))^2
+      # xi <- (1/rt(1, df=1))^2
+      xi <- tan(runif(1)*(atan(xi_interval[2]^0.5)-atan(xi_interval[1]^0.5))+
+                  atan(xi_interval[1]^0.5))^2
       sigma2 <- 1/rgamma(1, shape = a0/2, rate = b0/2)
       eta <- (1/rt(p, df=t_dist_df))^2
       beta <- rnorm(p)*sqrt(sigma2/(xi*eta))
@@ -613,7 +622,7 @@ meetingtime_half_t <-
   beta_2_current <-   chain2$beta
   eta_2_current <-    chain2$eta
 
-  # Intialising the first chain to have the L^th marginal at start
+  # Intializing the first chain to have the L^th marginal at start
   for (l in 1:lag)
   {
     first_chain_update <-
@@ -621,7 +630,7 @@ meetingtime_half_t <-
                     xi_1_current, sigma2_1_current, beta_1_current, eta_1_current,
                     approximate_algo_delta=approximate_algo_delta,
                     nrepeats_eta = nrepeats_eta, verbose = verbose,
-                    xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df)
+                    xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df, xi_interval)
     xi_1_current <- first_chain_update$xi_samples
     sigma2_1_current <- first_chain_update$sigma2_samples
     beta_1_current <- first_chain_update$beta_samples
@@ -650,7 +659,7 @@ meetingtime_half_t <-
                             epsilon_eta = epsilon_eta, epsilon_xi = epsilon_xi, epsilon_sigma2 = epsilon_sigma2,
                             nrepeats_eta = nrepeats_eta, verbose = verbose,
                             xi_fixed=xi_fixed, sigma2_fixed=sigma2_fixed, t_dist_df,
-                            two_scale=two_scale)
+                            two_scale=two_scale, xi_interval)
     # Checking overflow
     # if (!is.null(output$coupled_u)) return(output)
     xi_1_current <- output$xi_1_samples

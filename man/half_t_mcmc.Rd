@@ -19,7 +19,8 @@ half_t_mcmc(
   verbose = FALSE,
   xi_fixed = FALSE,
   sigma2_fixed = FALSE,
-  t_dist_df
+  t_dist_df,
+  xi_interval = c(0, Inf)
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ half_t_mcmc(
 \item{sigma2_fixed}{boolean for fixing / not fixing sigma2}
 
 \item{t_dist_df}{degree of freedom v for Half-t(v). Take v >=1.}
+
+\item{xi_interval}{support of prior distribution of xi}
 
 \item{xi_current}{current xi value (positive scalar)}
 

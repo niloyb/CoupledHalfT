@@ -24,7 +24,8 @@ meetingtime_half_t(
   xi_fixed = FALSE,
   sigma2_fixed = FALSE,
   t_dist_df,
-  two_scale = TRUE
+  two_scale = TRUE,
+  xi_interval = c(0, Inf)
 )
 }
 \arguments{
@@ -63,6 +64,8 @@ meetingtime_half_t(
 \item{sigma2_fixed}{boolean for fixing / not fixing sigma2}
 
 \item{t_dist_df}{degree of freedom v>=1 for Half-t(v)}
+
+\item{xi_interval}{support of prior distribution of xi}
 }
 \value{
 (beta, eta, sigma2, xi) sampled from the half-t prior blocked Gibbs kernel

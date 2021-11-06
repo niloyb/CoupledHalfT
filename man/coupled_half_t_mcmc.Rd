@@ -26,7 +26,8 @@ coupled_half_t_mcmc(
   sigma2_fixed = FALSE,
   lag = 1,
   t_dist_df,
-  two_scale = TRUE
+  two_scale = TRUE,
+  xi_interval = c(0, Inf)
 )
 }
 \arguments{
@@ -69,6 +70,8 @@ coupled_half_t_mcmc(
 \item{lag}{Lag}
 
 \item{t_dist_df}{degree of freedom v>=1 for Half-t(v)}
+
+\item{xi_interval}{support of prior distribution of xi}
 }
 \value{
 (beta, eta, sigma2, xi) sampled from the half-t prior blocked Gibbs kernel

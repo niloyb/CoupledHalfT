@@ -4,7 +4,7 @@
 \alias{log_ratio}
 \title{log_ratio}
 \usage{
-log_ratio(xi, eta, X_eta_tX_matrix, y, a0, b0)
+log_ratio(xi, eta, X_eta_tX_matrix, y, a0, b0, xi_interval)
 }
 \arguments{
 \item{xi}{positive scalar}
@@ -18,6 +18,8 @@ log_ratio(xi, eta, X_eta_tX_matrix, y, a0, b0)
 \item{a0}{positive scalar}
 
 \item{b0}{positive scalar}
+
+\item{xi_interval}{support of prior distribution of xi}
 }
 \value{
 Unnormalized posterior pdf of log(xi)

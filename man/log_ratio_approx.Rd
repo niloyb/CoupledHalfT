@@ -4,7 +4,7 @@
 \alias{log_ratio_approx}
 \title{log_ratio_approx}
 \usage{
-log_ratio_approx(xi, eta, X, X_transpose, y, a0, b0, active_set)
+log_ratio_approx(xi, eta, X, X_transpose, y, a0, b0, active_set, xi_interval)
 }
 \arguments{
 \item{xi}{positive scalar}
@@ -22,6 +22,8 @@ log_ratio_approx(xi, eta, X, X_transpose, y, a0, b0, active_set)
 \item{b0}{positive scalar}
 
 \item{active_set}{length p vector of booleans}
+
+\item{xi_interval}{support of prior distribution of xi}
 }
 \value{
 Unnormalized posterior pdf of log(xi)

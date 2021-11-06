@@ -14,7 +14,8 @@ xi_update(
   b0,
   std_MH,
   approximate_algo_delta = 0,
-  fixed = FALSE
+  fixed = FALSE,
+  xi_interval
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ xi_update(
 \item{std_MH}{standard deviation of log-normal MH proposal}
 
 \item{approximate_algo_delta}{approximate MCMC error (non-negative scalar)}
+
+\item{xi_interval}{support of prior distribution of xi}
 }
 \value{
 Metropolis-Hastings update of xi given eta

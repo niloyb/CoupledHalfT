@@ -17,7 +17,8 @@ crn_max_xi_coupling(
   std_MH,
   approximate_algo_delta = 0,
   epsilon_xi = 0,
-  fixed = FALSE
+  fixed = FALSE,
+  xi_interval
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ crn_max_xi_coupling(
 \item{approximate_algo_delta}{approximate MCMC error (non-negative scalar)}
 
 \item{epsilon_xi}{threshold (when above/below use common random numbers/ maximal coupling of proposals)}
+
+\item{xi_interval}{support of prior distribution of xi}
 }
 \value{
 Coupled Metropolis-Hastings update of xi given eta
