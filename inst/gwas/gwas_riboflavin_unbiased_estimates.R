@@ -14,6 +14,7 @@ library(dplyr)
 library(ggridges)
 
 ################################################################################
+# sample_unbiasedestimator outputs unbiased estimates without storing the full chain
 sample_unbiasedestimator <- 
   function(single_kernel, coupled_kernel, rinit, h = function(x) x, 
            k = 0, m = 1, lag = 1, max_iterations = Inf){
