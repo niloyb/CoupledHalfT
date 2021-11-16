@@ -13,73 +13,6 @@ library(reshape2)
 library(dplyr)
 library(ggridges)
 
-################################################################################
-# sample_unbiasedestimator outputs unbiased estimates without storing the full chain
-sample_unbiasedestimator <- 
-  function(single_kernel, coupled_kernel, rinit, h = function(x) x, 
-           k = 0, m = 1, lag = 1, max_iterations = Inf){
-  if (k > m){
-    print("error: k has to be less than m")
-    return(NULL)
-  }
-  if (lag > m){
-    print("error: lag has to be less than m")
-    return(NULL)
-  }
-  starttime <- Sys.time()
-  state1 <- rinit(); state2 <- rinit()
-  # mcmcestimator computes the sum of h(X_t) for t=k,...,m
-  mcmcestimator <- h(state1$chain_state)
-  dimh <- length(mcmcestimator)
-  if (k > 0){
-    mcmcestimator <- rep(0, dimh)
-  }
-  # correction computes the sum of min(m-k+1, ceiling((t - k)/lag)) * (h(X_{t}) - h(Y_{t-lag})) for t=k+lag,..., tau - 1
-  correction <- rep(0, dimh)
-  time <- 0
-  for (t in 1:lag){
-    time <- time + 1
-    state1 <- single_kernel(state1)
-    if (time >= k){
-      mcmcestimator <- mcmcestimator + h(state1$chain_state)
-    }
-  }
-  if (time >= k + lag){
-    correction <- correction + min(m-k+1, ceiling((time - k)/lag)) * (h(state1$chain_state) - h(state2$chain_state))
-  }
-  meetingtime <- Inf
-  # time here is equal to lag; at this point we have X_lag,Y_0 and we are going to generate successively X_{t},Y_{t-lag} where time t is >= lag+1
-  while ((time < max(meetingtime, m)) && (time < max_iterations)){
-    time <- time + 1 # time is lag+1,lag+2,...
-    if (is.finite(meetingtime)){
-      state1 <- single_kernel(state1)
-      state2 <- state1
-      if (k <= time && time <= m){
-        mcmcestimator <- mcmcestimator + h(state1$chain_state)
-      }
-    } else {
-      res_coupled_kernel <- coupled_kernel(state1, state2)
-      state1 <- res_coupled_kernel$state1
-      state2 <- res_coupled_kernel$state2
-      if (res_coupled_kernel$identical){
-        meetingtime <- time
-      }
-      if (k <= time && time <= m){
-        mcmcestimator <- mcmcestimator + h(state1$chain_state)
-      }
-      if (time >= k + lag){
-        correction <- correction + min(m-k+1, ceiling((time - k)/lag)) * (h(state1$chain_state) - h(state2$chain_state))
-      }
-    }
-  }
-  uestimator <- mcmcestimator + correction
-  cost <- lag + 2*(meetingtime - lag) + max(0, time - meetingtime)
-  currentime <- Sys.time()
-  elapsedtime <- as.numeric(lubridate::as.duration(lubridate::ymd_hms(currentime) - lubridate::ymd_hms(starttime)), "seconds")
-  return(list(mcmcestimator = mcmcestimator / (m - k + 1), correction = correction / (m - k + 1), uestimator = uestimator / (m - k + 1),
-              meetingtime = meetingtime, iteration = time, elapsedtime = elapsedtime, cost = cost))
-  }
-
 
 ################################################################################
 # Loading riboflavin dataset
@@ -97,7 +30,7 @@ p <-dim(X)[2]
 # ################################################################################
 # # Generate Synthetic data
 # n <- 100
-# p <- 1000
+# p <- 500
 # s <- 10
 # true_beta <- matrix(0,p,1)
 # true_beta[1:s] = 2^(-(seq(s)/4-9/4))
@@ -108,9 +41,12 @@ p <-dim(X)[2]
 # error_terms = error_std*rnorm(n, mean = 0, sd = 1)
 # y = X%*%true_beta + error_terms
 
+
+################################################################################
+# Prior parameters
 t_dist_df <- 2
 xi_interval <- c(0,Inf)
-verbose=TRUE
+verbose=FALSE
 
 ################################################################################
 single_kernel <- function(x){
@@ -182,7 +118,7 @@ rinit <- function(a0=1, b0=1){
 
 ################################################################################
 # Unbiased estimation
-iterations <- 10
+nchains <- 100
 k <- 1000
 m <- 2000
 lag <- 750
@@ -192,20 +128,20 @@ lag <- 750
 # m <- 2000
 # lag <- 200
 
-unbiased_beta <- foreach(i = c(1:iterations), .combine = '+')%dopar%{
+unbiased_beta <- foreach(i = c(1:nchains), .combine = '+')%dopar%{
   output <- sample_unbiasedestimator(single_kernel, coupled_kernel, rinit, 
                                      h = function(x) x$beta_samples, 
                                      k = k, m = m, lag = lag)
-  return(output$uestimator/iterations)
+  return(output$uestimator/nchains)
 }
 
 large_components <- order(abs(unbiased_beta), decreasing = TRUE)[1:5]
 
-# MCMC estimate
-mcmc_beta <- foreach(i = c(1:iterations), .combine = rbind)%dopar%{
-  output <- half_t_mcmc(chain_length=m, burnin=k, X, X_transpose, y, t_dist_df=t_dist_df)
-  return(output$beta_samples[,large_components, drop=FALSE])
-}
+# # MCMC estimate
+# mcmc_beta <- foreach(i = c(1:nchains), .combine = rbind)%dopar%{
+#   output <- half_t_mcmc(chain_length=m, burnin=k, X, X_transpose, y, t_dist_df=t_dist_df)
+#   return(output$beta_samples[,large_components, drop=FALSE])
+# }
 
 # unbiased_riboflavin_data <- list('mcmc_beta'=mcmc_beta,'unbiased_beta'=unbiased_beta)
 # save(unbiased_riboflavin_data, file='../BackUpFiles/CoupledHalfT_old/examples/big_data_examples/unbiased_riboflavin.RData')
@@ -221,43 +157,91 @@ mcmc_beta <- foreach(i = c(1:iterations), .combine = rbind)%dopar%{
 # matplot(mcmc_beta[,large_components], type='l', ylim=c(ymin, ymax))
 # abline(h=unbiased_beta[large_components])
 
-# Traceplots with unbiased mean estimate
-component <- 1
-traceplot <- data.frame('iteration'=c((k+1):m), 'value'=mcmc_beta[,component])
-plot <- ggplot(traceplot, aes(x = value)) + 
-  geom_density(fill = "grey", colour = "grey", alpha = 0.5) + theme_classic(base_size = 14) +
-  geom_vline(xintercept=unbiased_beta[large_components[component]], linetype="solid", color = "black", size=1) +
-  xlab(TeX(paste0("$\\beta_{", large_components[component], "}$ posterior")))
-plot
+# # Traceplots with unbiased mean estimate
+# component <- 1
+# traceplot <- data.frame('iteration'=c((k+1):m), 'value'=mcmc_beta[,component])
+# plot <- ggplot(traceplot, aes(x = value)) + 
+#   geom_density(fill = "grey", colour = "grey", alpha = 0.5) + theme_classic(base_size = 14) +
+#   geom_vline(xintercept=unbiased_beta[large_components[component]], linetype="solid", color = "black", size=1) +
+#   xlab(TeX(paste0("$\\beta_{", large_components[component], "}$ posterior")))
+# plot
+# # ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/dataset_examples/unbiased_riboflavin1.pdf",
+# #        plot = plot, width = 3, height = 3) # base_size = 18
+# 
+# component <- 2
+# traceplot <- data.frame('iteration'=c((k+1):m), 'value'=mcmc_beta[,component])
+# plot <- ggplot(traceplot, aes(x = value)) + 
+#   geom_density(fill = "grey", colour = "grey", alpha = 0.5) + theme_classic(base_size = 14) +
+#   geom_vline(xintercept=unbiased_beta[large_components[component]], linetype="solid", color = "black", size=1) +
+#   xlab(TeX(paste0("$\\beta_{", large_components[component], "}$ posterior")))
+# plot
+# # ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/dataset_examples/unbiased_riboflavin2.pdf",
+# #        plot = plot, width = 3, height = 3) # base_size = 18
+# 
+# component <- 3
+# traceplot <- data.frame('iteration'=c((k+1):m), 'value'=mcmc_beta[,component])
+# plot <- ggplot(traceplot, aes(x = value)) + 
+#   geom_density(fill = "grey", colour = "grey", alpha = 0.5) + theme_classic(base_size = 14) +
+#   geom_vline(xintercept=unbiased_beta[large_components[component]], linetype="solid", color = "black", size=1) +
+#   xlab(TeX(paste0("$\\beta_{", large_components[component], "}$ posterior")))
+# plot
+# # ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/dataset_examples/unbiased_riboflavin3.pdf",
+# #        plot = plot, width = 3, height = 3) # base_size = 18
+
+
+
+################################################################################
+# Histogram plots
+nchains <- 100
+nclass <- 30
+
+# Generating data
+component1 <- large_components[1]
+component2 <- large_components[2]
+component3 <- large_components[3]
+components <- c(component1, component2, component3)
+
+# MCMC estimate
+mcmc_beta <- foreach(i = c(1:nchains), .combine = rbind)%dopar%{
+  output <- half_t_mcmc(chain_length=m, burnin=0, X, X_transpose, y, t_dist_df=t_dist_df)
+  return(output$beta_samples[,components, drop=FALSE])
+}
+
+breaks1 <- hist(mcmc_beta[,1, drop=FALSE], plot = F, nclass = nclass)$breaks
+histogram1 <- beta_unbiased_histogram(nchains,component=component1,breaks=breaks1)
+hist_mcmc1 <- hist(mcmc_beta[,1], breaks = histogram1$breaks, plot = F)
+g1 <- plot_histogram(histogram1, with_bar = T) + 
+  xlab(TeX(paste0("$\\beta_{", component1, "}$ posterior"))) + ylab("density") +
+  geom_line(data=data.frame(x = hist_mcmc1$mids, y = hist_mcmc1$density), aes(x = x, y = y, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL), colour = "red")
+# g1 <- g1 + scale_x_continuous(breaks = c(-2.5, -2, -1.5))
+g1 <- g1 + theme_classic(base_size = 14)
+g1
 # ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/dataset_examples/unbiased_riboflavin1.pdf",
-#        plot = plot, width = 3, height = 3) # base_size = 18
+#        plot = g1, width = 3, height = 3) # base_size = 18
 
-component <- 2
-traceplot <- data.frame('iteration'=c((k+1):m), 'value'=mcmc_beta[,component])
-plot <- ggplot(traceplot, aes(x = value)) + 
-  geom_density(fill = "grey", colour = "grey", alpha = 0.5) + theme_classic(base_size = 14) +
-  geom_vline(xintercept=unbiased_beta[large_components[component]], linetype="solid", color = "black", size=1) +
-  xlab(TeX(paste0("$\\beta_{", large_components[component], "}$ posterior")))
-plot
+breaks2 <- hist(mcmc_beta[,2, drop=FALSE], plot = F, nclass = nclass)$breaks
+histogram2 <- beta_unbiased_histogram(nchains,component=component2,breaks=breaks2)
+hist_mcmc2 <- hist(mcmc_beta[,2], breaks = histogram2$breaks, plot = F)
+g2 <- plot_histogram(histogram2, with_bar = T) + 
+  xlab(TeX(paste0("$\\beta_{", component2, "}$ posterior"))) + ylab("density") + 
+  geom_line(data=data.frame(x = hist_mcmc2$mids, y = hist_mcmc2$density), aes(x = x, y = y, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL), colour = "red")
+# g2 <- g2 + scale_x_continuous(breaks = c(-2.5, -2, -1.5))
+g2 <- g2 + theme_classic(base_size = 14)
+g2
 # ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/dataset_examples/unbiased_riboflavin2.pdf",
-#        plot = plot, width = 3, height = 3) # base_size = 18
+#        plot = g2, width = 3, height = 3) # base_size = 18
 
-component <- 3
-traceplot <- data.frame('iteration'=c((k+1):m), 'value'=mcmc_beta[,component])
-plot <- ggplot(traceplot, aes(x = value)) + 
-  geom_density(fill = "grey", colour = "grey", alpha = 0.5) + theme_classic(base_size = 14) +
-  geom_vline(xintercept=unbiased_beta[large_components[component]], linetype="solid", color = "black", size=1) +
-  xlab(TeX(paste0("$\\beta_{", large_components[component], "}$ posterior")))
-plot
+breaks3 <- hist(mcmc_beta[,3, drop=FALSE], plot = F, nclass = nclass)$breaks
+histogram3 <- beta_unbiased_histogram(nchains,component=component3,breaks=breaks3)
+hist_mcmc3 <- hist(mcmc_beta[,3], breaks = histogram3$breaks, plot = F)
+g3 <- plot_histogram(histogram3, with_bar = T) + 
+  xlab(TeX(paste0("$\\beta_{", component3, "}$ posterior"))) + ylab("density") + 
+  geom_line(data=data.frame(x = hist_mcmc3$mids, y = hist_mcmc3$density), aes(x = x, y = y, xmin = NULL, xmax = NULL, ymin = NULL, ymax = NULL), colour = "red")
+# g2 <- g2 + scale_x_continuous(breaks = c(-2.5, -2, -1.5))
+g3 <- g3 + theme_classic(base_size = 14)
+g3
 # ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/dataset_examples/unbiased_riboflavin3.pdf",
-#        plot = plot, width = 3, height = 3) # base_size = 18
-
-
-
-
-
-
-
+#        plot = g3, width = 3, height = 3) # base_size = 18
 
 
 

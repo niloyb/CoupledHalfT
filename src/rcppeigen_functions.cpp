@@ -14,3 +14,4 @@ Eigen::MatrixXd fcprd(const Eigen::MatrixXd X){
 Eigen::MatrixXd cpp_prod(const Eigen::MatrixXd X, const Eigen::MatrixXd Y){
   return Eigen::MatrixXd(X*Y);
 }
+
