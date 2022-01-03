@@ -203,7 +203,7 @@ components <- c(component1, component2, component3)
 
 # MCMC estimate
 mcmc_beta <- foreach(i = c(1:nchains), .combine = rbind)%dopar%{
-  output <- half_t_mcmc(chain_length=m, burnin=0, X, X_transpose, y, t_dist_df=t_dist_df)
+  output <- half_t_mcmc(chain_length=m, burnin=200, X, X_transpose, y, t_dist_df=t_dist_df)
   return(output$beta_samples[,components, drop=FALSE])
 }
 
