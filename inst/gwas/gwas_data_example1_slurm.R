@@ -8,7 +8,6 @@ setwd("/n/home11/nbiswas/coupledHalfT/")
 
 # Libraries
 rm(list = ls())
-library(CoupledHalfT)
 library(foreach)
 library(parallel)
 library(doParallel)
@@ -19,18 +18,18 @@ function_scripts <- list.files("functions", full.names = TRUE)
 sapply(function_scripts, source)
 
 # Load GWAS data
-load(file = "/n/home11/nbiswas/horseshoe_coupling/data/design_matrix_Xnew.RData")
-load(file = "/n/home11/nbiswas/horseshoe_coupling/data/response_ynew.RData")
+load(file = "/n/home11/nbiswas/datasets/maize/design_matrix_Xnew.RData")
+load(file = "/n/home11/nbiswas/datasets/maize/response_ynew.RData")
 
 X_transpose <- t(X)
 n <- length(y)
 p <-dim(X)[2]
 
-max_iterations <- 2000
+max_iterations <- 2500
 
 t_dist_df <- 2
 iterations <- 20
-lag <- 750
+lag <- 1250
 
 print('Here we go')
 gwas_meet_df <- foreach(i = 1:iterations, .combine = rbind) %dopar% {

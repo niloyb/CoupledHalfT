@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -n 20 # Number of cores requested
 #SBATCH -N 1 # Ensure that all cores are on one machine
-#SBATCH -t 16000 # Runtime in minutes
+#SBATCH -t 3200 # Runtime in minutes
 #SBATCH -c 1 # cpus-per-task
 #SBATCH -p bigmem # Partition to submit to
 # SBATCH --gres=gpu:1 

@@ -17,16 +17,16 @@ registerDoParallel(cores = detectCores())
 ## ## ## ## ##
 
 # Two scaling coupling simulation setup
-iterations <- 10
+iterations <- 20
 
 epsilon_eta <- 0.5
 
 # Varying p, nu simulations
 n <- 100
 
-tdist_meetingtimes_df <-
+tdist_meetingtimes_df2 <-
   foreach(t_dist_df = seq(2,1,-0.2), .combine = rbind) %:% 
-  foreach(p = seq(200,1000,200), .combine = rbind) %:% 
+  foreach(p = seq(100,300,200), .combine = rbind) %:% 
   foreach(i = 1:iterations, .combine = rbind) %dopar% {
     ## Generate data
     s <- 20
@@ -43,52 +43,54 @@ tdist_meetingtimes_df <-
     meetingtime <- 
       meetingtime_half_t(X, X_transpose, y, a0 = 1, b0 = 1, std_MH = 0.8, 
                          epsilon_eta = epsilon_eta, 
-                         max_iterations = max_iterations, t_dist_df=t_dist_df)
+                         max_iterations = max_iterations, t_dist_df=t_dist_df,
+                         verbose = FALSE)
     print(c(t_dist_df, p, i, meetingtime$meetingtime))  # Will not print with %dopar%
     return(data.frame(n = n, p =p, sparsity = s, error_std = error_std, 
                       meetingtime = meetingtime, t_dist_df = t_dist_df))
   }
 
-# nu=2, varying p simulations
-tdist_meetingtimes_dfv2 <-
-  foreach(t_dist_df = seq(2,2,0), .combine = rbind) %:% 
-  foreach(p = seq(2e3,1e4,2e3), .combine = rbind) %:% 
-  foreach(i = 1:iterations, .combine = rbind) %dopar% {
-    ## Generate data
-    s <- 20
-    true_beta <- matrix(0,p,1)
-    true_beta[1:s] = 2^(-(seq(s)/4-9/4))
-    X <- matrix(rnorm(n*p), nrow = n, ncol = p)
-    X_transpose <- t(X)
-    #Error terms
-    error_std <- 2
-    error_terms = error_std*rnorm(n, mean = 0, sd = 1)
-    y = X%*%true_beta + error_terms
-    
-    max_iterations <- Inf
-    meetingtime <- 
-      meetingtime_half_t(X, X_transpose, y, a0 = 1, b0 = 1, std_MH = 0.8, 
-                         epsilon_eta = epsilon_eta, 
-                         max_iterations = max_iterations, t_dist_df=t_dist_df)
-    print(c(t_dist_df, p, i, meetingtime$meetingtime))  # Will not print with %dopar%
-    return(data.frame(n = n, p =p, sparsity = s, error_std = error_std,
-                      meetingtime = meetingtime, t_dist_df = t_dist_df))
-  }
-tdist_meetingtimes_df <- rbind(tdist_meetingtimes_df, tdist_meetingtimes_dfv2)
+# # nu=2, varying p simulations
+# tdist_meetingtimes_dfv2 <-
+#   foreach(t_dist_df = seq(2,2,0), .combine = rbind) %:% 
+#   foreach(p = seq(2e3,1e4,2e3), .combine = rbind) %:% 
+#   foreach(i = 1:iterations, .combine = rbind) %dopar% {
+#     ## Generate data
+#     s <- 20
+#     true_beta <- matrix(0,p,1)
+#     true_beta[1:s] = 2^(-(seq(s)/4-9/4))
+#     X <- matrix(rnorm(n*p), nrow = n, ncol = p)
+#     X_transpose <- t(X)
+#     #Error terms
+#     error_std <- 2
+#     error_terms = error_std*rnorm(n, mean = 0, sd = 1)
+#     y = X%*%true_beta + error_terms
+#     
+#     max_iterations <- Inf
+#     meetingtime <- 
+#       meetingtime_half_t(X, X_transpose, y, a0 = 1, b0 = 1, std_MH = 0.8, 
+#                          epsilon_eta = epsilon_eta, 
+#                          max_iterations = max_iterations, t_dist_df=t_dist_df)
+#     print(c(t_dist_df, p, i, meetingtime$meetingtime))  # Will not print with %dopar%
+#     return(data.frame(n = n, p =p, sparsity = s, error_std = error_std,
+#                       meetingtime = meetingtime, t_dist_df = t_dist_df))
+#   }
+# tdist_meetingtimes_df <- rbind(tdist_meetingtimes_df, tdist_meetingtimes_dfv3)
 
-# save(tdist_meetingtimes_df, file = "examples/half_t_degree_of_freedom/degree_of_freedom_meeting_times.RData") # meetingtimes_df
-# load("examples/half_t_degree_of_freedom/degree_of_freedom_meeting_times.RData") # meetingtimes_df_two_scale
+# save(tdist_meetingtimes_df, file = "inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times.RData") # meetingtimes_df
+# load("inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times.RData") # meetingtimes_df_two_scale
 
 # Plots
 plot_vary_p <-
-  ggplot(data = tdist_meetingtimes_df %>% dplyr::filter(p <=1000),
+  ggplot(data = tdist_meetingtimes_df %>% dplyr::filter(p <= 600),
          aes(y = p)) +
   geom_density_ridges(alpha=0.8, scale = 0.8,
                       aes(x = meetingtime.meetingtime, 
                           group = interaction(p, t_dist_df), 
                           fill = as.factor(t_dist_df))) +
   scale_fill_viridis_d(name=TeX('$\\nu$')) +
-  scale_x_log10() + 
+  # scale_x_log10() + 
+  scale_x_log10() +
   scale_y_continuous(breaks = seq(0,1e3,500)) +
   xlab(TeX('Meeting time $\\tau$')) +
   ylab(TeX('Dimension $p$')) +

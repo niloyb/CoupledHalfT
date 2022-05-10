@@ -149,7 +149,7 @@ eta_update_half_t_crn_couple <- function(xi_1, Beta_1, eta_1, sigma2_1,
   rate_2 <- (Beta_2^2)*(xi_2)/(2*sigma2_2)
   unif_crn_1 <- runif(p)
   u_1 <- unif_crn_1/(1 + t_dist_df*eta_1)^((1+t_dist_df)/2)
-  u_2 <- unif_crn_1/(1 + t_dist_df*eta_1)^((1+t_dist_df)/2)
+  u_2 <- unif_crn_1/(1 + t_dist_df*eta_2)^((1+t_dist_df)/2)
   unif_crn_2 <- runif(p)
   eta_1 <- r_trunc_poly_exp_crn((1+t_dist_df)/2, rate_1, (u_1^(-2/(1+t_dist_df))-1)/t_dist_df, unif_crn_2)
   eta_2 <- r_trunc_poly_exp_crn((1+t_dist_df)/2, rate_2, (u_2^(-2/(1+t_dist_df))-1)/t_dist_df, unif_crn_2)

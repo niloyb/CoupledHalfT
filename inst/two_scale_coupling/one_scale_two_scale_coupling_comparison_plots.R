@@ -10,9 +10,9 @@ library(gridExtra)
 library(ggridges)
 
 # Load data
-load("two_scale_coupling_plot.RData") # Two scale meetings
+load("inst/two_scale_coupling/two_scale_coupling_plot.RData") # Two scale meetings
 meetingtimes_df_two_scale <- meetingtimes_df
-load("one_scale_coupling_meetings.RData") # One scale meetings
+load("inst/one_scale_coupling/one_scale_coupling_meetings.RData") # One scale meetings
 meetingtimes_df_one_scale <- meetingtimes_df
 
 meetingtimes_df_combined <- 
@@ -36,12 +36,13 @@ plot_vary_p <-
   ylab(TeX('dimension $p$')) +
   scale_y_continuous(breaks = seq(50,200,50)) +
   theme_classic(base_size = 18) + coord_flip() +
-  theme(legend.position='bottom', legend.justification='left',
-        legend.direction='horizontal',
+  theme(legend.position='right', legend.justification='left',
+        legend.direction='vertical',
         legend.title = element_text(size=13),
         legend.text = element_text(size=13))
 plot_vary_p
 #ggsave(filename = "examples/two_scale_coupling/coupling_comparison_plot_vary_p.pdf", plot = plot_vary_p, width = 4, height = 3) # base_size = 18
+# ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/New_plots_May_2022/coupling_comparison_plot_vary_p.pdf", plot = plot_vary_p, width = 4, height = 3) # base_size = 18
 
 # plot_vary_p_highlight <-
 #   ggplot(data = meetingtimes_df_combined %>%

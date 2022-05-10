@@ -13,7 +13,7 @@ registerDoParallel(cores = detectCores()-2)
 ## ## ## ## ##
 
 # Simulation setup
-iterations <- 10
+iterations <- 100
 meetingtimes_df <- data.frame()
 
 # Horseshoe prior
@@ -54,7 +54,7 @@ meetingtimes_df_p <-
 meetingtimes_df <- rbind(meetingtimes_df, meetingtimes_df_p)
 
 # Save data
-# save(meetingtimes_df, file = "examples/one_scale_coupling/one_scale_coupling_meetings.RData")
+# save(meetingtimes_df, file = "inst/one_scale_coupling/one_scale_coupling_meetings.RData")
 
 # # Varying n simulations
 # p <- 150

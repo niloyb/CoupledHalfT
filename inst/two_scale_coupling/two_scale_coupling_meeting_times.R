@@ -13,7 +13,7 @@ registerDoParallel(cores = detectCores()-2)
 ## ## ## ## ##
 
 # Simulation setup
-iterations <- 10
+iterations <- 100
 meetingtimes_df <- data.frame()
 
 # Horseshoe prior
@@ -47,14 +47,13 @@ meetingtimes_df_p <-
                          epsilon_eta = epsilon_eta, 
                          max_iterations = max_iterations, t_dist_df=t_dist_df)
     print(c(n,p,s,error_std,i, meetingtime$meetingtime))  # Will not print with %dopar%
-    gc()
     data.frame(n = n, p =p, meetingtime = meetingtime, 
                t_dist_df = t_dist_df, sparsity = s, error_std = error_std)
   }
 meetingtimes_df <- rbind(meetingtimes_df, meetingtimes_df_p)
 
 # Save data
-# save(meetingtimes_df, file = "examples/two_scale_coupling/two_scale_coupling_plot.RData")
+# save(meetingtimes_df, file = "inst/two_scale_coupling/two_scale_coupling_plot.RData")
 
 # # Varying n simulations
 # p <- 150

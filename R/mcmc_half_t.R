@@ -278,20 +278,36 @@ half_t_kernel <-
     if (verbose) ptm <- proc.time()
     n <- dim(X)[1]
     p <- dim(X)[2]
+    
+    # eta update
+    eta_new <- eta_update_half_t(xi_current, sigma2_current, beta_current, eta_current,
+                                 t_dist_df, nrepeats_eta)
     # xi update
-    xi_new <- xi_update(xi_current, eta_current, X, X_transpose, y, a0, b0, std_MH,
+    xi_new <- xi_update(xi_current, eta_new, X, X_transpose, y, a0, b0, std_MH,
                         approximate_algo_delta, fixed=xi_fixed, xi_interval=xi_interval)
     # sigma2 update
     sigma2_fixed_value <- NULL
     if(sigma2_fixed==TRUE) sigma2_fixed_value <- sigma2_current
-    sigma2_new <- sigma2_update(xi_new$xi, eta_current, n, xi_new$ssr, a0, b0,
+    sigma2_new <- sigma2_update(xi_new$xi, eta_new, n, xi_new$ssr, a0, b0,
                                 sigma2_fixed_value)
     # beta update
-    beta_new <- beta_update(xi_new$xi, sigma2_new, eta_current, X, X_transpose, y,
+    beta_new <- beta_update(xi_new$xi, sigma2_new, eta_new, X, X_transpose, y,
                             xi_new$M_matrix, xi_new$active_set)
-    # eta update
-    eta_new <- eta_update_half_t(xi_new$xi, sigma2_new, beta_new, eta_current,
-                                 t_dist_df, nrepeats_eta)
+    
+    # # xi update
+    # xi_new <- xi_update(xi_current, eta_current, X, X_transpose, y, a0, b0, std_MH,
+    #                     approximate_algo_delta, fixed=xi_fixed, xi_interval=xi_interval)
+    # # sigma2 update
+    # sigma2_fixed_value <- NULL
+    # if(sigma2_fixed==TRUE) sigma2_fixed_value <- sigma2_current
+    # sigma2_new <- sigma2_update(xi_new$xi, eta_current, n, xi_new$ssr, a0, b0,
+    #                             sigma2_fixed_value)
+    # # beta update
+    # beta_new <- beta_update(xi_new$xi, sigma2_new, eta_current, X, X_transpose, y,
+    #                         xi_new$M_matrix, xi_new$active_set)
+    # # eta update
+    # eta_new <- eta_update_half_t(xi_new$xi, sigma2_new, beta_new, eta_current,
+    #                              t_dist_df, nrepeats_eta)
     
     if (verbose) print(proc.time()[3]-ptm[3])
     output <- list( 'beta_samples'=beta_new, 'eta_samples'=eta_new,

@@ -132,12 +132,13 @@ for (i in 1:iterations){
 traceplots_df <- traceplots_df %>% 
   dplyr::filter(component %in% c('X1','X9','X13','X25'))
 
-# save(stat_perform_df, file = "examples/half_t_degree_of_freedom/stat_performance_t_dist_prior.RData")
-#load(file = "examples/half_t_degree_of_freedom/stat_performance_t_dist_prior.RData")
-#save(stat_perform_componentwise_df, file = "examples/half_t_degree_of_freedom/stat_perform_componentwise_df.RData")
-#load(file = "examples/half_t_degree_of_freedom//stat_perform_componentwise_df.RData")
-#save(traceplots_df, file = "examples/half_t_degree_of_freedom/traceplots_t_dist_prior.RData")
-#load(file = "examples/half_t_degree_of_freedom/traceplots_t_dist_prior.RData")
+# save(stat_perform_df, file = "inst/half_t_degree_of_freedom/stat_performance_t_dist_prior.RData")
+#load(file = "inst/half_t_degree_of_freedom/stat_performance_t_dist_prior.RData")
+#save(stat_perform_componentwise_df, file = "inst/half_t_degree_of_freedom/stat_perform_componentwise_df.RData")
+#load(file = "inst/half_t_degree_of_freedom//stat_perform_componentwise_df.RData")
+
+#save(traceplots_df, file = "inst/half_t_degree_of_freedom/traceplots_t_dist_prior.RData")
+#load(file = "inst/half_t_degree_of_freedom/traceplots_t_dist_prior.RData")
 
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -271,8 +272,9 @@ beta_mse <- ggplot(stat_perform_df,
   # scale_y_continuous(breaks = seq(0,1,0.02)) +
   theme(legend.position = "none")
 beta_mse
-#ggsave(filename = "examples/half_t_degree_of_freedom/beta_mse.pdf", plot = beta_mse, width = 4, height = 4)
-#ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/half_t_degree_of_freedom_plot/beta_mse2.pdf", plot = beta_mse, width = 4, height = 3)
+# ggsave(filename = "examples/half_t_degree_of_freedom/beta_mse.pdf", plot = beta_mse, width = 4, height = 4)
+# ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/Drafts/images/half_t_degree_of_freedom_plot/beta_mse2.pdf", plot = beta_mse, width = 4, height = 3)
+# ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/New_plots_May_2022/beta_mse2.pdf", plot = beta_mse, width = 4, height = 3)
 
 # XBeta MSE
 # Xbeta_mse <- ggplot(stat_perform_df,
