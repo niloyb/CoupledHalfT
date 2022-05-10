@@ -24,7 +24,7 @@ epsilon_eta <- 0.5
 # Varying p, nu simulations
 n <- 100
 
-tdist_meetingtimes_df2 <-
+tdist_meetingtimes_df <-
   foreach(t_dist_df = seq(2,1,-0.2), .combine = rbind) %:% 
   foreach(p = seq(100,300,200), .combine = rbind) %:% 
   foreach(i = 1:iterations, .combine = rbind) %dopar% {
@@ -77,7 +77,7 @@ tdist_meetingtimes_df2 <-
 #   }
 # tdist_meetingtimes_df <- rbind(tdist_meetingtimes_df, tdist_meetingtimes_dfv3)
 
-# save(tdist_meetingtimes_df, file = "inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times.RData") # meetingtimes_df
+# save(tdist_meetingtimes_df, file = "inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times_new.RData") # meetingtimes_df
 # load("inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times.RData") # meetingtimes_df_two_scale
 
 # Plots
