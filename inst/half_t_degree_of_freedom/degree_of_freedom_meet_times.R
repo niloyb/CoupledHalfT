@@ -17,16 +17,16 @@ registerDoParallel(cores = detectCores())
 ## ## ## ## ##
 
 # Two scaling coupling simulation setup
-iterations <- 20
+iterations <- 100
 
 epsilon_eta <- 0.5
 
 # Varying p, nu simulations
 n <- 100
 
-tdist_meetingtimes_df <-
+tdist_meetingtimes_df2 <-
   foreach(t_dist_df = seq(2,1,-0.2), .combine = rbind) %:% 
-  foreach(p = seq(100,300,200), .combine = rbind) %:% 
+  foreach(p = seq(100,300,100), .combine = rbind) %:% 
   foreach(i = 1:iterations, .combine = rbind) %dopar% {
     ## Generate data
     s <- 20
@@ -78,26 +78,26 @@ tdist_meetingtimes_df <-
 # tdist_meetingtimes_df <- rbind(tdist_meetingtimes_df, tdist_meetingtimes_dfv3)
 
 # save(tdist_meetingtimes_df, file = "inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times_new.RData") # meetingtimes_df
-# load("inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times.RData") # meetingtimes_df_two_scale
+# load("inst/half_t_degree_of_freedom/degree_of_freedom_meeting_times_new.RData") # meetingtimes_df_two_scale
 
 # Plots
 plot_vary_p <-
-  ggplot(data = tdist_meetingtimes_df %>% dplyr::filter(p <= 600),
+  ggplot(data = tdist_meetingtimes_df %>% dplyr::filter(p <= 500),
          aes(y = p)) +
   geom_density_ridges(alpha=0.8, scale = 0.8,
                       aes(x = meetingtime.meetingtime, 
                           group = interaction(p, t_dist_df), 
                           fill = as.factor(t_dist_df))) +
   scale_fill_viridis_d(name=TeX('$\\nu$')) +
-  # scale_x_log10() + 
   scale_x_log10() +
-  scale_y_continuous(breaks = seq(0,1e3,500)) +
+  scale_y_continuous(breaks = seq(0,1e3,100)) +
   xlab(TeX('Meeting time $\\tau$')) +
   ylab(TeX('Dimension $p$')) +
   theme_classic(base_size = 16) + coord_flip() +
   theme(legend.position = 'right')
 plot_vary_p
 # ggsave(filename = "examples/half_t_degree_of_freedom/half_t_degree_of_freedom_vary_p.pdf", plot = plot_vary_p, width = 4, height = 3)
+# ggsave(filename = "/Users/niloybiswas/Dropbox/horseshoe_coupling/New_plots_May_2022/half_t_degree_of_freedom_vary_p.pdf", plot = plot_vary_p, width = 4, height = 3)
 
 plot_nu_2_vary_p <-
   ggplot(data = tdist_meetingtimes_df %>% 

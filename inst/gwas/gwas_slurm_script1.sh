@@ -11,4 +11,5 @@
 #SBATCH -o hostname_%j.out # Standard out goes to this file
 #SBATCH -e hostname_%j.err # Standard err goes to this filehostname
 
-Rscript gwas_data_example1_slurm.R 
+module load R/4.0.2-fasrc01
+Rscript gwas_data_example1_slurm.R

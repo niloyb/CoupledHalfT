@@ -265,6 +265,20 @@ coupled_half_t_kernel <-
     if (verbose) ptm <- proc.time()
     
     if(two_scale){
+      
+      # (nrepeats_eta-1) steps of slice sampling
+      if (is.infinite(nrepeats_eta)){ stop("Number of slice sampling must be finite") }
+      if (nrepeats_eta>1){
+        for (i in 1:(nrepeats_eta-1)) {
+          eta_sample <-
+            eta_update_half_t_crn_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
+                                         xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
+                                         t_dist_df)
+          eta_1_current <- eta_sample[,1]
+          eta_2_current <- eta_sample[,2]
+        }
+      }
+      
       # Calculating the metric
       # When epsilon_eta >=1, relative_error_delta <= epsilon_eta always.
       if(epsilon_eta >= 1){
@@ -279,30 +293,21 @@ coupled_half_t_kernel <-
       }
       if (verbose) print(relative_error_delta)
       
-      if (relative_error_delta <= epsilon_eta){ # Using max coupling of 1-step slice sampling when close
+      # Using max coupling of 1-step slice sampling when close, CRN of 1-step slice sampling when far away
+      if (relative_error_delta <= epsilon_eta){ 
         eta_sample <-
           eta_update_half_t_max_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
                                        xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
                                        t_dist_df)
-        # eta_sample <-
-        #   eta_update_half_t_max_couple_till_you_miss(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
-        #                                              xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
-        #                                              t_dist_df)
       } else {
-        if (is.infinite(nrepeats_eta)){ stop("Number of slice sampling must be finite") }
-        else {
-          for (i in 1:nrepeats_eta) {
-            eta_sample <-
-              eta_update_half_t_crn_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
-                                           xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
-                                           t_dist_df)
-            eta_1_current <- eta_sample[,1]
-            eta_2_current <- eta_sample[,2]
-          }
-        }
+        eta_sample <-
+          eta_update_half_t_crn_couple(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
+                                       xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
+                                       t_dist_df)
       }
     } else {
-      relative_error_delta <- 1 # Now no need to calculate the metric
+      # Switch-to-CRN coupling: now no need to calculate the metric
+      relative_error_delta <- 1 
       eta_sample <-
         eta_update_half_t_max_couple_till_you_miss(xi_1_current, beta_1_current, eta_1_current, sigma2_1_current,
                                                    xi_2_current, beta_2_current, eta_2_current, sigma2_2_current,
@@ -314,7 +319,7 @@ coupled_half_t_kernel <-
     if (verbose) print(proc.time()[3]-ptm[3])
 
     if (verbose) print(c('Eta components coupled:', sum(eta_1_new==eta_2_new)))
-
+    
     if (verbose) ptm <- proc.time()
     xi_sample <-
       crn_max_xi_coupling(xi_1_current, eta_1_new, xi_2_current, eta_2_new,

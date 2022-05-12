@@ -8,6 +8,8 @@ setwd("/n/home11/nbiswas/coupledHalfT/")
 
 # Libraries
 rm(list = ls())
+seed <- 1
+set.seed(seed)
 library(foreach)
 library(parallel)
 library(doParallel)
@@ -25,18 +27,20 @@ X_transpose <- t(X)
 n <- length(y)
 p <-dim(X)[2]
 
-max_iterations <- 2500
+max_iterations <- 5
 
 t_dist_df <- 2
 iterations <- 20
-lag <- 1250
+lag <- 2
 
 print('Here we go')
 gwas_meet_df <- foreach(i = 1:iterations, .combine = rbind) %dopar% {
   meeting_time_2 <- 
-    meetingtime_half_t(X, X_transpose, y, max_iterations=max_iterations, 
-                       verbose = TRUE, t_dist_df=t_dist_df, lag=lag)
-  return(data.frame(seed=seed, iteration = i, lag, meeting_time_2, t_dist_df))
+    meetingtime_half_t(X, X_transpose, y, a0=1, b0=1, std_MH=0.8,
+                       rinit=NULL, epsilon_eta = 0.5, 
+                       max_iterations=max_iterations, verbose = TRUE,
+                       t_dist_df=t_dist_df, lag=lag)
+  return(data.frame(iteration = i, lag, meeting_time_2, t_dist_df))
 }
 write.table(gwas_meet_df, "gwas_simulations/GWASLlag_new.csv", sep = ",", 
             col.names = !file.exists("gwas_simulations/GWASLlag_new.csv"), 
