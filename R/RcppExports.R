@@ -9,6 +9,10 @@ cpp_prod <- function(X, Y) {
     .Call(`_CoupledHalfT_cpp_prod`, X, Y)
 }
 
+cpp_cholesky <- function(M) {
+    .Call(`_CoupledHalfT_cpp_cholesky`, M)
+}
+
 rcppeigen_hello_world <- function() {
     .Call(`_CoupledHalfT_rcppeigen_hello_world`)
 }

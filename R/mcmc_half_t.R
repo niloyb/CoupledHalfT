@@ -28,7 +28,7 @@
 #' @return X Diag(1/eta) t(X_transpose)
 #' @export
 X_eta_tX <- function(eta, X, X_transpose){
-  # NOTE: (1) For MacOS with veclib BLAS, crossprod is fast via multit-hreading
+  # NOTE: (1) For MacOS with veclib BLAS, crossprod is fast via multi-threading
   # return(crossprod(X_transpose*c(1/eta)^0.5))
   return(fcprd(X_transpose*c(1/eta)^0.5))
 }
@@ -62,7 +62,8 @@ log_ratio <- function(xi, eta, X_eta_tX_matrix, y, a0, b0, xi_interval)
 {
   n <- length(y)
   M <- M_matrix(xi,eta,X_eta_tX_matrix,n)
-  chol_M <- chol(M)
+  # chol_M <- chol(M)
+  chol_M <- cpp_cholesky(M)
   log_det_M <- 2*sum(log(diag(chol_M)))
   M_inverse <- chol2inv(chol_M)
   ssr <- b0 + t(y)%*%((M_inverse)%*%y)
@@ -116,7 +117,8 @@ log_ratio_approx <- function(xi, eta, X, X_transpose, y, a0, b0, active_set,
     } else{
       woodbury_matrix_part <- xi*diag(eta) + cpp_prod(X_transpose, X)
     }
-    woodbury_matrix_part_inverse <- chol2inv(chol(woodbury_matrix_part))
+    # woodbury_matrix_part_inverse <- chol2inv(chol(woodbury_matrix_part))
+    woodbury_matrix_part_inverse <- chol2inv(cpp_cholesky(woodbury_matrix_part))
     M_inverse <- diag(n) -
       cpp_prod(cpp_prod(X,woodbury_matrix_part_inverse),X_transpose)
     log_det_M <- sum( log( xi^(-1)*(svd((eta^(-0.5))*X_transpose)$d)^2 + 1 ) )

@@ -117,7 +117,7 @@ Run coupled MCMC and generate meeting times.
 
 ```{r Llag_meetings, tidy = T, cache = TRUE, warning=FALSE, message=FALSE, fig.width=7}
 nrep <- 20
-lag <- 100
+lag <- 500
 tdist_meetingtimes_df <- data.frame()
 for (i in 1:nrep){
   meetingtime <- meetingtime_half_t(X, X_transpose, y, t_dist_df=t_dist_df, lag=lag)
@@ -143,7 +143,7 @@ tv_upper_bound_estimates_df <- function(df, time){
 }
 
 # TV UB Plot
-time <- c(0:100)
+time <- c(0:1000)
 tv_ub_df <- tdist_meetingtimes_df %>% 
   dplyr::do(tv_upper_bound_estimates_df(df=., time=time))
 plot(x=tv_ub_df$t, y=tv_ub_df$tv_ub, type = 'l', xlab = 'iteration', 

@@ -100,7 +100,7 @@ print(paste('Lag: ',lag,'.',' L-lag Meeting time: ',coupled_chain$meetingtime,'.
 ```
 
 ```
-## [1] "Lag: 100. L-lag Meeting time: 126."
+## [1] "Lag: 100. L-lag Meeting time: 339."
 ```
 
 ```r
@@ -157,7 +157,7 @@ Run coupled MCMC and generate meeting times.
 
 ```r
 nrep <- 20
-lag <- 100
+lag <- 500
 tdist_meetingtimes_df <- data.frame()
 for (i in 1:nrep){
   meetingtime <- meetingtime_half_t(X, X_transpose, y, t_dist_df=t_dist_df, lag=lag)
@@ -168,26 +168,26 @@ for (i in 1:nrep){
 ```
 
 ```
-## [1]   1 134
-## [1]   2 120
-## [1]   3 117
-## [1]   4 133
-## [1]   5 114
-## [1]   6 127
-## [1]   7 128
-## [1]   8 128
-## [1]   9 114
-## [1]  10 124
-## [1]  11 150
-## [1]  12 125
-## [1]  13 131
-## [1]  14 131
-## [1]  15 123
-## [1]  16 111
-## [1]  17 128
-## [1]  18 115
-## [1]  19 119
-## [1]  20 130
+## [1]   1 747
+## [1]   2 761
+## [1]   3 800
+## [1]   4 815
+## [1]   5 815
+## [1]   6 787
+## [1]   7 785
+## [1]   8 807
+## [1]   9 817
+## [1]  10 816
+## [1]  11 875
+## [1]  12 763
+## [1]  13 836
+## [1]  14 913
+## [1]  15 755
+## [1]  16 845
+## [1]  17 768
+## [1]  18 707
+## [1]  19 738
+## [1]  20 831
 ```
 
 Plot L-lag total variation bounds.
@@ -207,7 +207,7 @@ tv_upper_bound_estimates_df <- function(df, time){
 }
 
 # TV UB Plot
-time <- c(0:100)
+time <- c(0:1000)
 tv_ub_df <- tdist_meetingtimes_df %>% 
   dplyr::do(tv_upper_bound_estimates_df(df=., time=time))
 plot(x=tv_ub_df$t, y=tv_ub_df$tv_ub, type = 'l', xlab = 'iteration', 

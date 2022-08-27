@@ -12,25 +12,36 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // fcprd
-Eigen::MatrixXd fcprd(const Eigen::MatrixXd X);
+Eigen::MatrixXf fcprd(const Eigen::MatrixXf X);
 RcppExport SEXP _CoupledHalfT_fcprd(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXf >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(fcprd(X));
     return rcpp_result_gen;
 END_RCPP
 }
 // cpp_prod
-Eigen::MatrixXd cpp_prod(const Eigen::MatrixXd X, const Eigen::MatrixXd Y);
+Eigen::MatrixXf cpp_prod(const Eigen::MatrixXf X, const Eigen::MatrixXf Y);
 RcppExport SEXP _CoupledHalfT_cpp_prod(SEXP XSEXP, SEXP YSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXf >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXf >::type Y(YSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_prod(X, Y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_cholesky
+Eigen::MatrixXf cpp_cholesky(const Eigen::MatrixXf M);
+RcppExport SEXP _CoupledHalfT_cpp_cholesky(SEXP MSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::MatrixXf >::type M(MSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_cholesky(M));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -81,6 +92,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_CoupledHalfT_fcprd", (DL_FUNC) &_CoupledHalfT_fcprd, 1},
     {"_CoupledHalfT_cpp_prod", (DL_FUNC) &_CoupledHalfT_cpp_prod, 2},
+    {"_CoupledHalfT_cpp_cholesky", (DL_FUNC) &_CoupledHalfT_cpp_cholesky, 1},
     {"_CoupledHalfT_rcppeigen_hello_world", (DL_FUNC) &_CoupledHalfT_rcppeigen_hello_world, 0},
     {"_CoupledHalfT_rcppeigen_outerproduct", (DL_FUNC) &_CoupledHalfT_rcppeigen_outerproduct, 1},
     {"_CoupledHalfT_rcppeigen_innerproduct", (DL_FUNC) &_CoupledHalfT_rcppeigen_innerproduct, 1},
